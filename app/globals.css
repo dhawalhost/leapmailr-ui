@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  
+  /* Light mode colors */
+  --color-background: oklch(100% 0 0);
+  --color-foreground: oklch(15.23% 0.019 285.75);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(15.23% 0.019 285.75);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(15.23% 0.019 285.75);
+  --color-primary: oklch(60.41% 0.237 293.78);
+  --color-primary-foreground: oklch(98.35% 0.007 247.86);
+  --color-secondary: oklch(96.37% 0.007 247.86);
+  --color-secondary-foreground: oklch(14.16% 0.027 285.88);
+  --color-muted: oklch(96.37% 0.007 247.86);
+  --color-muted-foreground: oklch(54.55% 0.023 257.14);
+  --color-accent: oklch(96.37% 0.007 247.86);
+  --color-accent-foreground: oklch(14.16% 0.027 285.88);
+  --color-destructive: oklch(62.8% 0.257 29.23);
+  --color-destructive-foreground: oklch(98.35% 0.007 247.86);
+  --color-border: oklch(91.89% 0.016 258.34);
+  --color-input: oklch(91.89% 0.016 258.34);
+  --color-ring: oklch(60.41% 0.237 293.78);
+  
+  --radius-sm: calc(0.5rem - 4px);
+  --radius-md: calc(0.5rem - 2px);
+  --radius-lg: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    /* Dark mode colors */
+    --color-background: oklch(15.23% 0.019 285.75);
+    --color-foreground: oklch(98.35% 0.007 247.86);
+    --color-card: oklch(15.23% 0.019 285.75);
+    --color-card-foreground: oklch(98.35% 0.007 247.86);
+    --color-popover: oklch(15.23% 0.019 285.75);
+    --color-popover-foreground: oklch(98.35% 0.007 247.86);
+    --color-primary: oklch(60.41% 0.237 293.78);
+    --color-primary-foreground: oklch(98.35% 0.007 247.86);
+    --color-secondary: oklch(22.18% 0.029 264.54);
+    --color-secondary-foreground: oklch(98.35% 0.007 247.86);
+    --color-muted: oklch(22.18% 0.029 264.54);
+    --color-muted-foreground: oklch(70.28% 0.021 257.14);
+    --color-accent: oklch(22.18% 0.029 264.54);
+    --color-accent-foreground: oklch(98.35% 0.007 247.86);
+    --color-destructive: oklch(37.11% 0.178 29.23);
+    --color-destructive-foreground: oklch(98.35% 0.007 247.86);
+    --color-border: oklch(22.18% 0.029 264.54);
+    --color-input: oklch(22.18% 0.029 264.54);
+    --color-ring: oklch(60.41% 0.237 293.78);
+  }
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-family: var(--font-family-sans);
+}
+
+

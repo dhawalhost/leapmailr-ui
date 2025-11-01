@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Frontend UI (Development Mode)
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: leapmailr-ui-dev
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - leapmailr-network
+    restart: unless-stopped
+    command: npm run dev
+
+networks:
+  leapmailr-network:
+    driver: bridge
