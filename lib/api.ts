@@ -128,6 +128,9 @@ export const emailServiceAPI = {
     name: string;
     provider: string;
     configuration: Record<string, any>;
+    from_email: string;
+    from_name?: string;
+    reply_to_email?: string;
     is_default?: boolean;
   }) =>
     api.post('/email-services', data),
@@ -135,6 +138,9 @@ export const emailServiceAPI = {
   update: (id: string, data: {
     name?: string;
     configuration?: Record<string, any>;
+    from_email?: string;
+    from_name?: string;
+    reply_to_email?: string;
     is_default?: boolean;
     status?: string;
   }) =>

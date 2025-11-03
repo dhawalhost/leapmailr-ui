@@ -12,6 +12,11 @@ export interface EmailService {
   id: string;
   name: string;
   provider: EmailServiceProvider;
+  provider_logo?: string;
+  provider_color?: string;
+  from_email: string;
+  from_name: string;
+  reply_to_email?: string;
   config_preview?: Record<string, string>;
   is_default: boolean;
   status: EmailServiceStatus;
@@ -101,7 +106,8 @@ export type EmailServiceConfig =
 export interface ProviderMetadata {
   name: string;
   description: string;
-  icon: string;
+  icon: string; // Icon identifier
+  color: string; // Brand color
   fields: {
     name: string;
     label: string;
@@ -116,7 +122,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   smtp: {
     name: 'SMTP',
     description: 'Send emails using any SMTP server',
-    icon: '📧',
+    color: '#4A90E2',
+    icon: 'smtp',
     fields: [
       { name: 'host', label: 'SMTP Host', type: 'text', required: true, placeholder: 'smtp.example.com' },
       { name: 'port', label: 'Port', type: 'number', required: true, placeholder: '587' },
@@ -133,7 +140,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   sendgrid: {
     name: 'SendGrid',
     description: 'Send emails using SendGrid API',
-    icon: '📮',
+    color: '#1A82E2',
+    icon: 'sendgrid',
     fields: [
       { name: 'api_key', label: 'API Key', type: 'password', required: true },
       { name: 'from_email', label: 'From Email', type: 'text', required: true, placeholder: 'noreply@example.com' },
@@ -143,7 +151,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   mailgun: {
     name: 'Mailgun',
     description: 'Send emails using Mailgun API',
-    icon: '🔫',
+    color: '#F06B66',
+    icon: 'mailgun',
     fields: [
       { name: 'domain', label: 'Domain', type: 'text', required: true, placeholder: 'mg.example.com' },
       { name: 'api_key', label: 'API Key', type: 'password', required: true },
@@ -158,7 +167,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   ses: {
     name: 'Amazon SES',
     description: 'Send emails using Amazon Simple Email Service',
-    icon: '📨',
+    color: '#FF9900',
+    icon: 'ses',
     fields: [
       { name: 'region', label: 'AWS Region', type: 'text', required: true, placeholder: 'us-east-1' },
       { name: 'access_key', label: 'Access Key ID', type: 'text', required: true },
@@ -170,7 +180,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   postmark: {
     name: 'Postmark',
     description: 'Send emails using Postmark API',
-    icon: '📬',
+    color: '#FFCC00',
+    icon: 'postmark',
     fields: [
       { name: 'server_token', label: 'Server Token', type: 'password', required: true },
       { name: 'from_email', label: 'From Email', type: 'text', required: true, placeholder: 'noreply@example.com' },
@@ -180,7 +191,8 @@ export const PROVIDER_METADATA: Record<EmailServiceProvider, ProviderMetadata> =
   resend: {
     name: 'Resend',
     description: 'Send emails using Resend API',
-    icon: '🚀',
+    color: '#000000',
+    icon: 'resend',
     fields: [
       { name: 'api_key', label: 'API Key', type: 'password', required: true },
       { name: 'from_email', label: 'From Email', type: 'text', required: true, placeholder: 'noreply@example.com' },

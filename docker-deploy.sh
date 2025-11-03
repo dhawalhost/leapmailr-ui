@@ -28,7 +28,7 @@ fi
 echo ""
 echo "🔨 Building frontend Docker image..."
 docker build \
-    --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080} \
+    --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1} \
     -t leapmailr-frontend:local .
 echo -e "${GREEN}✓ Frontend image built${NC}"
 
@@ -36,7 +36,7 @@ echo -e "${GREEN}✓ Frontend image built${NC}"
 if [ ! -f ".env.local" ]; then
     echo -e "${YELLOW}⚠️  .env.local file not found, creating...${NC}"
     cat > .env.local <<EOF
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 NODE_ENV=production
 EOF
     echo -e "${GREEN}✓ .env.local file created${NC}"

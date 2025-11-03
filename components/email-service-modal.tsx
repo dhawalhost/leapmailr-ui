@@ -22,6 +22,9 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
   const [serviceName, setServiceName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [config, setConfig] = useState<Record<string, any>>({});
+  const [fromEmail, setFromEmail] = useState('');
+  const [fromName, setFromName] = useState('');
+  const [replyToEmail, setReplyToEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -30,12 +33,18 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
       setSelectedProvider(service.provider);
       setServiceName(service.name);
       setIsDefault(service.is_default);
+      setFromEmail(service.from_email || '');
+      setFromName(service.from_name || '');
+      setReplyToEmail(service.reply_to_email || '');
       // Note: config_preview is masked, we can't edit existing configs fully
       setConfig({});
     } else {
       setSelectedProvider('smtp');
       setServiceName('');
       setIsDefault(false);
+      setFromEmail('');
+      setFromName('');
+      setReplyToEmail('');
       setConfig({});
     }
   }, [service, open]);
@@ -67,6 +76,9 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
         await emailServiceAPI.update(service.id, {
           name: serviceName,
           configuration: Object.keys(configuration).length > 0 ? configuration : undefined,
+          from_email: fromEmail,
+          from_name: fromName || undefined,
+          reply_to_email: replyToEmail || undefined,
           is_default: isDefault,
         });
         toast({
@@ -79,6 +91,9 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
           name: serviceName,
           provider: selectedProvider,
           configuration,
+          from_email: fromEmail,
+          from_name: fromName || undefined,
+          reply_to_email: replyToEmail || undefined,
           is_default: isDefault,
         });
         toast({
@@ -188,6 +203,45 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
                   )}
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold">Email Settings</h3>
+              
+              <div>
+                <Label htmlFor="from_email">
+                  From Email <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="from_email"
+                  type="email"
+                  value={fromEmail}
+                  onChange={(e) => setFromEmail(e.target.value)}
+                  placeholder="noreply@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="from_name">From Name</Label>
+                <Input
+                  id="from_name"
+                  value={fromName}
+                  onChange={(e) => setFromName(e.target.value)}
+                  placeholder="My Company"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="reply_to_email">Reply-To Email</Label>
+                <Input
+                  id="reply_to_email"
+                  type="email"
+                  value={replyToEmail}
+                  onChange={(e) => setReplyToEmail(e.target.value)}
+                  placeholder="support@example.com"
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">

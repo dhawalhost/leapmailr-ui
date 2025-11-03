@@ -148,7 +148,7 @@ export default function DashboardLayout({
                     alt="LeapMailr" 
                     width={120} 
                     height={32} 
-                    className="h-4 w-auto"  
+                    className="h-4 w-auto" 
                   />
                   <Button
                     variant="ghost"

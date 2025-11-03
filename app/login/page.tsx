@@ -68,7 +68,7 @@ export default function LoginPage() {
           >
             <Sparkles className="w-12 h-12 text-primary" />
           </motion.div>
-          <h2 className="text-4xl font-bold">Better than EmailJS</h2>
+          <h2 className="text-4xl font-bold">Better Platform</h2>
           <p className="text-lg text-muted-foreground">
             More features. Better pricing. Superior developer experience.
           </p>

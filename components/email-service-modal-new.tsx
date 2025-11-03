@@ -59,6 +59,9 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [serviceName, setServiceName] = useState('');
+  const [fromEmail, setFromEmail] = useState('');
+  const [fromName, setFromName] = useState('');
+  const [replyToEmail, setReplyToEmail] = useState('');
   const [configuration, setConfiguration] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [loadingProviders, setLoadingProviders] = useState(true);
@@ -72,6 +75,9 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
       setSelectedCategory('all');
       setSelectedProvider(null);
       setServiceName('');
+      setFromEmail('');
+      setFromName('');
+      setReplyToEmail('');
       setConfiguration({});
     }
   }, [open]);
@@ -126,19 +132,25 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
 
     setLoading(true);
     try {
+      // Remove from_email from configuration since it's now a separate field
+      const { from_email, ...restConfig } = configuration;
+      
       const config: Record<string, any> = {
         provider: selectedProvider.id,
         host: selectedProvider.host,
         port: selectedProvider.port,
         use_tls: selectedProvider.use_tls,
         use_ssl: selectedProvider.use_ssl,
-        ...configuration,
+        ...restConfig,
       };
 
       await emailServiceAPI.create({
         name: serviceName,
         provider: 'smtp',
         configuration: config,
+        from_email: fromEmail,
+        from_name: fromName,
+        reply_to_email: replyToEmail || undefined,
         is_default: false,
       });
 
@@ -221,7 +233,7 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
                 {loadingProviders ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
                     <p className="text-gray-500 dark:text-gray-400 mt-4">Loading providers...</p>
                   </div>
                 ) : (
@@ -230,7 +242,7 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                     {transactionalProviders.length > 0 && (
                       <div className="mb-8">
                         <div className="flex items-center gap-2 mb-4">
-                          <Sparkles className="h-5 w-5 text-purple-600" />
+                          <Sparkles className="h-5 w-5 text-green-600" />
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             Professional Email Services
                           </h3>
@@ -240,12 +252,12 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                           {transactionalProviders.map((provider) => (
                             <Card
                               key={provider.id}
-                              className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-purple-300 dark:hover:border-purple-700"
+                              className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-green-300 dark:hover:border-green-700"
                               onClick={() => handleProviderSelect(provider)}
                             >
                               <CardHeader>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Mail className="h-6 w-6 text-purple-600" />
+                                  <Mail className="h-6 w-6 text-green-600" />
                                   {provider.help_url && (
                                     <ExternalLink className="h-4 w-4 text-gray-400" />
                                   )}
@@ -352,6 +364,58 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                   />
                 </div>
 
+                {/* Sender Information */}
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-4">
+                  <h3 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-2">
+                    Sender Information (shown to recipients)
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="fromEmail">
+                        From Email Address
+                        <span className="text-red-500 ml-1">*</span>
+                      </Label>
+                      <Input
+                        id="fromEmail"
+                        type="email"
+                        value={fromEmail}
+                        onChange={(e) => setFromEmail(e.target.value)}
+                        placeholder="noreply@yourdomain.com"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        This is the email address recipients will see (not your SMTP credentials)
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="fromName">From Name</Label>
+                      <Input
+                        id="fromName"
+                        type="text"
+                        value={fromName}
+                        onChange={(e) => setFromName(e.target.value)}
+                        placeholder="Your Company Name"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        The friendly name shown to recipients
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="replyToEmail">Reply-To Email (optional)</Label>
+                      <Input
+                        id="replyToEmail"
+                        type="email"
+                        value={replyToEmail}
+                        onChange={(e) => setReplyToEmail(e.target.value)}
+                        placeholder="support@yourdomain.com"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Where replies should be sent (leave empty to use From Email)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Server Info */}
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
@@ -377,28 +441,35 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                   </div>
                 </div>
 
-                {/* Provider Fields */}
-                {selectedProvider.fields.map((field) => (
-                  <div key={field.key}>
-                    <Label htmlFor={field.key}>
-                      {field.label}
-                      {field.required && <span className="text-red-500 ml-1">*</span>}
-                    </Label>
-                    <Input
-                      id={field.key}
-                      type={field.type}
-                      value={configuration[field.key] || ''}
-                      onChange={(e) => handleConfigChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                      required={field.required}
-                    />
-                    {field.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {field.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                {/* Provider Fields (SMTP Credentials) */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    SMTP Credentials (authentication only)
+                  </h3>
+                  {selectedProvider.fields
+                    .filter(field => field.key !== 'from_email') // Remove from_email since it's handled above
+                    .map((field) => (
+                    <div key={field.key}>
+                      <Label htmlFor={field.key}>
+                        {field.label}
+                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                      </Label>
+                      <Input
+                        id={field.key}
+                        type={field.type}
+                        value={configuration[field.key] || ''}
+                        onChange={(e) => handleConfigChange(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        required={field.required}
+                      />
+                      {field.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {field.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
                 {/* Help Link */}
                 {selectedProvider.help_url && (
@@ -407,7 +478,7 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                       href={selectedProvider.help_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700"
+                      className="flex items-center gap-2 text-sm text-green-600 hover:text-green-700"
                     >
                       <ExternalLink className="h-4 w-4" />
                       View {selectedProvider.name} Setup Guide
@@ -427,7 +498,7 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-green-600 hover:bg-green-700"
                   >
                     {loading ? (
                       <>
