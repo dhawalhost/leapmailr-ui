@@ -1,0 +1,46 @@
+# LeapMailr Frontend Systemd Service
+# Place this file at: /etc/systemd/system/leapmailr-ui.service
+
+[Unit]
+Description=LeapMailr Frontend (Next.js)
+After=network.target leapmailr.service
+Wants=leapmailr.service
+
+[Service]
+Type=simple
+User=leapmailr
+Group=leapmailr
+WorkingDirectory=/opt/leapmailr-ui
+
+# Environment variables
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+EnvironmentFile=/opt/leapmailr-ui/.env.local
+
+# Start Next.js production server
+ExecStart=/usr/bin/npm start
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/leapmailr-ui
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=leapmailr-ui
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

@@ -1,49 +1,51 @@
-# Dependencies
+# Ignore Git files
+.git
+.github
+.gitignore
+
+# Ignore dependencies
 node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
-# Next.js
-.next/
-out/
-dist/
-
-# Production
+# Ignore build outputs
+.next
+out
 build
+dist
 
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-*.log
-
-# Local env files
+# Ignore environment files
 .env
 .env.local
 .env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.example
 
-# Vercel
-.vercel
+# Ignore logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# Ignore test files
+coverage
+.nyc_output
 
-# Testing
-coverage/
+# Ignore documentation
+docs/
+*.md
+README.md
 
-# IDE
+# Ignore IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# OS
+# Ignore deployment files
+deployment/
+
+# Ignore Next.js specific
+.next/cache
+
+# Ignore OS files
 Thumbs.db

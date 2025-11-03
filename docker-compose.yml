@@ -1,30 +1,29 @@
 version: '3.8'
 
 services:
-  # Frontend UI
+  # Frontend Service
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: leapmailr-ui
-    environment:
-      # API Backend URL - change this to point to your backend
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
-      NODE_ENV: production
-      PORT: 3000
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    container_name: leapmailr-frontend
+    restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     networks:
       - leapmailr-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
 networks:
   leapmailr-network:
-    driver: bridge
-    # If connecting to existing network from main docker-compose, use:
-    # external: true
+    external: true
