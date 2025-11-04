@@ -237,30 +237,30 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 hover:bg-primary/15 transition-colors cursor-pointer"
             >
               <Sparkles className="h-4 w-4 animate-pulse" />
-              <span>Enterprise Email Infrastructure</span>
+              <span>The Smart Email Abstraction Layer</span>
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
-              Email delivery,{' '}
+              Switch email providers{' '}
               <span className="bg-gradient-to-r from-primary via-green-400 to-emerald-400 bg-clip-text text-transparent animate-gradient">
-                simplified
+                without changing code
               </span>
             </h1>
             
             <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Send transactional emails, manage templates, and track performance with our powerful API. Built for developers, loved by teams.
+              Stop hardcoding SMTP providers in your application. LeapMailr sits between your code and email services, letting you switch providers, manage templates, and track analytics—all without touching your codebase.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/register">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-white h-14 px-10 text-base shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all group w-full sm:w-auto">
-                  Start Free Trial
+                  Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Button size="lg" variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-gray-600 h-14 px-10 text-base group w-full sm:w-auto">
-                <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                Watch Demo
+                <Code className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                View Documentation
               </Button>
             </div>
             
@@ -268,15 +268,15 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
+                <span>Free to start</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span>Free forever plan</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span>Cancel anytime</span>
+                <span>Switch providers anytime</span>
               </div>
             </div>
           </motion.div>
@@ -291,23 +291,23 @@ export default function Home() {
             {[
               {
                 icon: Zap,
-                title: '99.9% Uptime',
-                description: 'Enterprise-grade reliability with redundant infrastructure',
-                badge: 'SLA Guaranteed',
+                title: 'Provider Agnostic',
+                description: 'Use SendGrid today, switch to Mailgun tomorrow—same API, zero code changes',
+                badge: 'Flexible',
                 color: 'from-yellow-500/20 to-orange-500/20'
               },
               {
                 icon: Shield,
-                title: 'Secure & Compliant',
-                description: 'SOC 2 Type II certified with end-to-end encryption',
-                badge: 'ISO 27001',
+                title: 'Centralized Control',
+                description: 'Manage all email templates and configurations in one place',
+                badge: 'Unified',
                 color: 'from-blue-500/20 to-cyan-500/20'
               },
               {
-                icon: TrendingUp,
-                title: 'Real-time Analytics',
-                description: 'Track deliverability, opens, and clicks instantly',
-                badge: 'Live Dashboard',
+                icon: Code,
+                title: 'Simple Integration',
+                description: 'Write once, use everywhere. No more provider-specific SDK hell',
+                badge: 'Developer Friendly',
                 color: 'from-green-500/20 to-emerald-500/20'
               }
             ].map((card, index) => (
@@ -333,7 +333,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section with Animated Counters */}
+      {/* Why LeapMailr Section */}
       <section className="py-20 relative">
         <div className="container mx-auto px-6">
           <motion.div
@@ -343,30 +343,84 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <Card className="p-12 bg-gradient-to-br from-primary/5 to-gray-800/50 border-gray-700/50 backdrop-blur-sm">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {[
-                  { value: 10, suffix: 'B+', label: 'Emails Delivered', icon: Send },
-                  { value: 99.9, suffix: '%', label: 'Uptime SLA', icon: Zap },
-                  { value: 50, suffix: 'ms', label: 'Avg Response Time', icon: Clock },
-                  { value: 24, suffix: '/7', label: 'Expert Support', icon: Users },
-                ].map((stat, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="text-center group cursor-default"
-                  >
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-3 group-hover:bg-primary/20 transition-colors">
-                      <stat.icon className="h-6 w-6 text-primary" />
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Why LeapMailr?</h2>
+                  <p className="text-gray-400 text-lg">The problem with traditional email integration</p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-8 mb-12">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                        <X className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">Without LeapMailr</h3>
+                        <p className="text-gray-400 text-sm">SMTP credentials hardcoded in your app. Switching providers means code changes, testing, and deployment.</p>
+                      </div>
                     </div>
-                    <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-green-400 bg-clip-text text-transparent mb-2">
-                      <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                        <X className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">Template Chaos</h3>
+                        <p className="text-gray-400 text-sm">Email templates scattered across codebase. Updates require developer time and deployments.</p>
+                      </div>
                     </div>
-                    <div className="text-gray-400 text-sm font-medium">{stat.label}</div>
-                  </motion.div>
-                ))}
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                        <X className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">Vendor Lock-in</h3>
+                        <p className="text-gray-400 text-sm">Tied to one provider's API, pricing, and limitations. Migration is painful.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">With LeapMailr</h3>
+                        <p className="text-gray-400 text-sm">One API for all providers. Switch email services through the dashboard—no code changes needed.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">Centralized Templates</h3>
+                        <p className="text-gray-400 text-sm">Manage all templates in one place. Marketing teams can update content without bothering developers.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">Complete Freedom</h3>
+                        <p className="text-gray-400 text-sm">Try different providers, compare performance, negotiate better pricing. You're in control.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-primary/10 to-green-500/10 border border-primary/20 rounded-lg p-6 text-center">
+                  <p className="text-white font-semibold mb-2">The LeapMailr Advantage</p>
+                  <p className="text-gray-300 text-sm">
+                    Your code calls LeapMailr → We handle provider routing → Emails delivered through your chosen service
+                  </p>
+                </div>
               </div>
             </Card>
           </motion.div>
@@ -382,46 +436,46 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Everything you need</h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">Powerful features to streamline your email operations and boost productivity</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">How It Works</h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">LeapMailr acts as a smart middleware layer for all your email needs</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 icon: Code,
-                title: 'Developer-First API',
-                description: 'RESTful API with comprehensive documentation and SDKs for all major languages',
+                title: 'One API, Any Provider',
+                description: 'Write your code once using LeapMailr API. Behind the scenes, we route to your chosen SMTP provider—SendGrid, Mailgun, AWS SES, or custom SMTP',
                 color: 'from-purple-500/10 to-pink-500/10'
               },
               {
                 icon: Mail,
-                title: 'Template Management',
-                description: 'Create, version, and manage email templates with dynamic variables',
+                title: 'Dynamic Templates',
+                description: 'Store templates with variables in LeapMailr. Update content without code deployments. Support for HTML, plain text, and attachments',
                 color: 'from-blue-500/10 to-cyan-500/10'
               },
               {
                 icon: Send,
-                title: 'Bulk Sending',
-                description: 'Send thousands of emails per second with our high-performance infrastructure',
+                title: 'Switch Providers Instantly',
+                description: 'Change email service through dashboard settings. Test different providers, compare costs, avoid downtime—all without touching your codebase',
                 color: 'from-green-500/10 to-emerald-500/10'
               },
               {
                 icon: BarChart3,
-                title: 'Advanced Analytics',
-                description: 'Track delivery rates, engagement metrics, and campaign performance',
+                title: 'Unified Analytics',
+                description: 'Track delivery rates, opens, and clicks across all providers in one dashboard. No more juggling multiple provider dashboards',
                 color: 'from-orange-500/10 to-red-500/10'
               },
               {
                 icon: Lock,
-                title: 'Enhanced Security',
-                description: 'DKIM, SPF, and DMARC support with automatic authentication',
+                title: 'Configuration Management',
+                description: 'Store SMTP credentials securely. Rotate keys, manage multiple services per environment, all from a centralized interface',
                 color: 'from-indigo-500/10 to-purple-500/10'
               },
               {
                 icon: Users,
-                title: 'Contact Management',
-                description: 'Organize and segment your contact lists for targeted campaigns',
+                title: 'Multi-Environment Support',
+                description: 'Use different providers for dev/staging/production. Test with Mailtrap, go live with SendGrid—same code everywhere',
                 color: 'from-pink-500/10 to-rose-500/10'
               },
             ].map((feature, index) => (
@@ -446,8 +500,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 relative">
+      {/* Getting Started Section */}
+      <section id="get-started" className="py-20 relative">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -455,65 +509,53 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Loved by developers</h2>
-            <p className="text-gray-400 text-lg">See what our customers have to say about LeapMailr</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Get Started in Minutes</h2>
+            <p className="text-gray-400 text-lg">Decouple your code from email providers in three simple steps</p>
           </motion.div>
 
-          <div className="max-w-4xl mx-auto">
-            <Card className="p-8 md:p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTestimonial}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="text-center"
-                >
-                  <Quote className="h-12 w-12 text-primary/30 mx-auto mb-6" />
-                  <div className="flex items-center justify-center gap-1 mb-6">
-                    {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed italic">
-                    "{testimonials[activeTestimonial].content}"
-                  </p>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 overflow-hidden">
-                      <Image 
-                        src={testimonials[activeTestimonial].image} 
-                        alt={testimonials[activeTestimonial].name}
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
+          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '1',
+                title: 'Sign Up & Integrate',
+                description: 'Create a free account and add LeapMailr API to your app. Replace direct SMTP calls with our endpoint',
+                icon: Users,
+              },
+              {
+                step: '2',
+                title: 'Add Email Service',
+                description: 'Connect your existing SMTP provider (SendGrid, Mailgun, etc.) or add multiple providers for testing',
+                icon: Mail,
+              },
+              {
+                step: '3',
+                title: 'Create Templates',
+                description: 'Set up email templates with variables. Your code sends data, we handle the rest',
+                icon: Send,
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className="p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-primary/30 transition-all h-full text-center">
+                  <div className="relative inline-flex items-center justify-center mb-4">
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
+                    <div className="relative w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <item.icon className="h-8 w-8 text-primary" />
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-white">{testimonials[activeTestimonial].name}</div>
-                      <div className="text-sm text-gray-400">{testimonials[activeTestimonial].role}</div>
-                      <div className="text-xs text-primary">{testimonials[activeTestimonial].company}</div>
+                    <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
+                      {item.step}
                     </div>
                   </div>
-                </motion.div>
-              </AnimatePresence>
-              
-              {/* Testimonial Navigation */}
-              <div className="flex items-center justify-center gap-2 mt-8">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveTestimonial(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === activeTestimonial 
-                        ? 'bg-primary w-8' 
-                        : 'bg-gray-600 hover:bg-gray-500'
-                    }`}
-                  />
-                ))}
-              </div>
-            </Card>
+                  <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                  <p className="text-gray-400 text-sm">{item.description}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -722,27 +764,27 @@ export default function Home() {
                   <Rocket className="h-8 w-8 text-primary" />
                 </motion.div>
                 
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Ready to get started?</h2>
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Ready to stop worrying about email providers?</h2>
                 <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-                  Join thousands of developers who trust LeapMailr for their email infrastructure. Start sending in minutes.
+                  Write your email code once. Switch providers anytime. LeapMailr gives you the flexibility to adapt without the pain of refactoring.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Link href="/register">
                     <Button size="lg" className="bg-white hover:bg-gray-100 text-gray-900 h-14 px-10 text-base shadow-lg hover:shadow-xl transition-all group w-full sm:w-auto">
-                      Start Free Trial
+                      Get Started Free
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Link href="#contact">
+                  <Link href="https://github.com/dhawalhost/leapmailr" target="_blank">
                     <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 h-14 px-10 text-base w-full sm:w-auto">
-                      Talk to Sales
+                      View on GitHub
                     </Button>
                   </Link>
                 </div>
                 
                 <p className="text-sm text-gray-400 mt-6">
-                  No credit card required • 1,000 free emails every month • Cancel anytime
+                  Free plan available • No credit card required • Provider flexibility
                 </p>
               </div>
             </Card>

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { Project } from '@/types/project';
 
 interface User {
   id: string;
@@ -54,6 +55,50 @@ export const useAuthStore = create<AuthState>()(
           removeItem: () => {},
         };
       }),
+    }
+  )
+);
+
+interface ProjectState {
+  currentProject: Project | null;
+  projects: Project[];
+  isLoading: boolean;
+  setCurrentProject: (project: Project) => void;
+  setProjects: (projects: Project[]) => void;
+  setLoading: (loading: boolean) => void;
+  clearProjects: () => void;
+}
+
+export const useProjectStore = create<ProjectState>()(
+  persist(
+    (set) => ({
+      currentProject: null,
+      projects: [],
+      isLoading: false,
+      setCurrentProject: (project) => set({ currentProject: project }),
+      setProjects: (projects) => {
+        const defaultProject = projects.find(p => p.is_default) || projects[0] || null;
+        set({ 
+          projects, 
+          currentProject: defaultProject 
+        });
+      },
+      setLoading: (loading) => set({ isLoading: loading }),
+      clearProjects: () => set({ currentProject: null, projects: [], isLoading: false }),
+    }),
+    {
+      name: 'project-storage',
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage;
+        }
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        };
+      }),
+      skipHydration: false,
     }
   )
 );

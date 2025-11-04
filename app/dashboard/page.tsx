@@ -7,24 +7,18 @@ import Link from 'next/link';
 import {
   Mail,
   Send,
-  TrendingUp,
-  TrendingDown,
   Clock,
   CheckCircle2,
   XCircle,
   FileText,
-  Zap,
-  ArrowRight,
-  ArrowUp,
-  ArrowDown,
-  Users,
   Server,
-  Activity,
   Calendar,
   Eye,
-  MousePointer,
   BarChart3,
   Plus,
+  ArrowRight,
+  Activity,
+  MousePointer,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,26 +50,6 @@ function AnimatedCounter({ target, duration = 1000 }: { target: number; duration
   return <span>{count.toLocaleString()}</span>;
 }
 
-// Mini Chart Component (simplified visualization)
-function MiniLineChart({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data);
-  const normalized = data.map(val => (val / max) * 100);
-  
-  return (
-    <div className="flex items-end gap-1 h-12">
-      {normalized.map((height, i) => (
-        <motion.div
-          key={i}
-          initial={{ height: 0 }}
-          animate={{ height: `${height}%` }}
-          transition={{ duration: 0.5, delay: i * 0.05 }}
-          className={`flex-1 ${color} rounded-t`}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const [stats, setStats] = useState({
@@ -86,16 +60,9 @@ export default function DashboardPage() {
     opens: 0,
     clicks: 0,
   });
-  const [trends, setTrends] = useState({
-    sent: 12.5,
-    delivered: 8.3,
-    failed: -2.1,
-    opens: 15.7,
-  });
   const [recentEmails, setRecentEmails] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [chartData] = useState([45, 52, 48, 65, 70, 68, 80]); // Mock data for chart
 
   useEffect(() => {
     fetchDashboardData();
@@ -111,15 +78,15 @@ export default function DashboardPage() {
       setRecentEmails(emailsRes.data.data || []);
       setTemplates(templatesRes.data.data || []);
 
-      // Calculate stats
+      // Calculate stats from actual email data
       const emails = emailsRes.data.data || [];
       const newStats = {
         totalSent: emails.length,
         delivered: emails.filter((e: any) => e.status === 'delivered').length,
         failed: emails.filter((e: any) => e.status === 'failed').length,
         pending: emails.filter((e: any) => e.status === 'queued' || e.status === 'sent').length,
-        opens: Math.floor(emails.length * 0.65), // Mock data
-        clicks: Math.floor(emails.length * 0.32), // Mock data
+        opens: emails.filter((e: any) => e.opened_at).length,
+        clicks: emails.filter((e: any) => e.clicked_at).length,
       };
       setStats(newStats);
     } catch (error) {
@@ -133,7 +100,6 @@ export default function DashboardPage() {
     {
       title: 'Total Sent',
       value: stats.totalSent,
-      change: trends.sent,
       icon: Send,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
@@ -142,7 +108,6 @@ export default function DashboardPage() {
     {
       title: 'Delivered',
       value: stats.delivered,
-      change: trends.delivered,
       icon: CheckCircle2,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
@@ -151,7 +116,6 @@ export default function DashboardPage() {
     {
       title: 'Open Rate',
       value: `${stats.totalSent > 0 ? Math.round((stats.opens / stats.totalSent) * 100) : 0}%`,
-      change: trends.opens,
       icon: Eye,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -160,7 +124,6 @@ export default function DashboardPage() {
     {
       title: 'Failed',
       value: stats.failed,
-      change: trends.failed,
       icon: XCircle,
       color: 'text-red-500',
       bgColor: 'bg-red-500/10',
@@ -285,26 +248,8 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-3xl font-bold text-white">
-                    {typeof stat.value === 'number' ? <AnimatedCounter target={stat.value} /> : stat.value}
-                  </div>
-                  <div className={`flex items-center gap-1 text-sm font-medium ${
-                    stat.change >= 0 ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {stat.change >= 0 ? (
-                      <ArrowUp className="h-4 w-4" />
-                    ) : (
-                      <ArrowDown className="h-4 w-4" />
-                    )}
-                    <span>{Math.abs(stat.change)}%</span>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <MiniLineChart 
-                    data={chartData} 
-                    color={stat.bgColor.replace('/10', '/30')} 
-                  />
+                <div className="text-3xl font-bold text-white">
+                  {typeof stat.value === 'number' ? <AnimatedCounter target={stat.value} /> : stat.value}
                 </div>
               </CardContent>
             </Card>

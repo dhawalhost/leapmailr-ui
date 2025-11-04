@@ -79,7 +79,7 @@ export const authAPI = {
 
 // Template API
 export const templateAPI = {
-  list: (params?: { limit?: number; offset?: number; is_active?: boolean }) =>
+  list: (params?: { project_id?: string; limit?: number; offset?: number; is_active?: boolean }) =>
     api.get('/templates', { params }),
   
   get: (id: string) =>
@@ -125,6 +125,7 @@ export const emailServiceAPI = {
     api.get(`/email-services/${id}`),
   
   create: (data: {
+    project_id?: string;
     name: string;
     provider: string;
     configuration: Record<string, any>;
@@ -163,4 +164,38 @@ export const analyticsAPI = {
   
   getEmailStats: (params?: { start_date?: string; end_date?: string }) =>
     api.get('/analytics/emails', { params }),
+};
+
+// Project API
+export const projectAPI = {
+  list: () =>
+    api.get('/projects'),
+  
+  get: (id: string) =>
+    api.get(`/projects/${id}`),
+  
+  getDefault: () =>
+    api.get('/projects/default'),
+  
+  create: (data: {
+    name: string;
+    description?: string;
+    color?: string;
+    is_default?: boolean;
+  }) =>
+    api.post('/projects', data),
+  
+  update: (id: string, data: {
+    name?: string;
+    description?: string;
+    color?: string;
+    is_default?: boolean;
+  }) =>
+    api.put(`/projects/${id}`, data),
+  
+  delete: (id: string) =>
+    api.delete(`/projects/${id}`),
+  
+  setDefault: (id: string) =>
+    api.post(`/projects/${id}/default`),
 };

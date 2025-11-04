@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { emailServiceAPI } from '@/lib/api';
+import { useProjectStore } from '@/lib/store';
 import { EmailService, PROVIDER_METADATA } from '@/types/email-service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,11 +48,13 @@ export default function EmailServicesPage() {
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [testingService, setTestingService] = useState<EmailService | null>(null);
   const { toast } = useToast();
+  const { currentProject } = useProjectStore();
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await emailServiceAPI.list();
+      const params = currentProject ? { project_id: currentProject.id } : {};
+      const response = await emailServiceAPI.list(params);
       setServices(response.data.services || []);
     } catch (error: any) {
       toast({
@@ -66,7 +69,7 @@ export default function EmailServicesPage() {
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [currentProject]);
 
   const handleDelete = async () => {
     if (!serviceToDelete) return;

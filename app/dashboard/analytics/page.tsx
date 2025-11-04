@@ -98,13 +98,6 @@ export default function AnalyticsPage() {
   const [emailData, setEmailData] = useState<ChartDataPoint[]>([]);
   const [templatePerformance, setTemplatePerformance] = useState<TemplateStats[]>([]);
   const [statusData, setStatusData] = useState<{ name: string; value: number; color: string }[]>([]);
-  
-  const [comparisonMetrics, setComparisonMetrics] = useState({
-    sent_change: 0,
-    delivered_change: 0,
-    failed_change: 0,
-    pending_change: 0,
-  });
 
   useEffect(() => {
     loadAnalytics();
@@ -205,14 +198,6 @@ export default function AnalyticsPage() {
       }));
       
       setTemplatePerformance(templateStats.sort((a, b) => b.sent - a.sent).slice(0, 10));
-
-      // Mock comparison metrics (would need previous period data)
-      setComparisonMetrics({
-        sent_change: 12.5,
-        delivered_change: 8.2,
-        failed_change: -3.1,
-        pending_change: 5.4,
-      });
 
     } catch (error) {
       console.error('Failed to load analytics:', error);
@@ -328,7 +313,6 @@ export default function AnalyticsPage() {
                 {
                   title: 'Total Sent',
                   value: metrics.total_sent.toLocaleString(),
-                  change: comparisonMetrics.sent_change,
                   icon: Send,
                   color: 'from-blue-500/20 to-blue-600/20',
                 },
@@ -336,7 +320,6 @@ export default function AnalyticsPage() {
                   title: 'Delivered',
                   value: metrics.total_delivered.toLocaleString(),
                   subtitle: `${metrics.delivery_rate.toFixed(1)}% rate`,
-                  change: comparisonMetrics.delivered_change,
                   icon: CheckCircle2,
                   color: 'from-green-500/20 to-green-600/20',
                 },
@@ -344,7 +327,6 @@ export default function AnalyticsPage() {
                   title: 'Opened',
                   value: metrics.total_opened.toLocaleString(),
                   subtitle: `${metrics.open_rate.toFixed(1)}% rate`,
-                  change: 15.3,
                   icon: Eye,
                   color: 'from-purple-500/20 to-purple-600/20',
                 },
@@ -352,7 +334,6 @@ export default function AnalyticsPage() {
                   title: 'Clicked',
                   value: metrics.total_clicked.toLocaleString(),
                   subtitle: `${metrics.click_rate.toFixed(1)}% rate`,
-                  change: 8.7,
                   icon: MousePointer,
                   color: 'from-orange-500/20 to-orange-600/20',
                 },
@@ -370,18 +351,6 @@ export default function AnalyticsPage() {
                         <div className="p-3 rounded-lg bg-white/10">
                           <stat.icon className="w-5 h-5" />
                         </div>
-                        {stat.change !== undefined && (
-                          <div className={`flex items-center gap-1 text-sm ${
-                            stat.change >= 0 ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {stat.change >= 0 ? (
-                              <ArrowUpRight className="w-4 h-4" />
-                            ) : (
-                              <ArrowDownRight className="w-4 h-4" />
-                            )}
-                            {Math.abs(stat.change).toFixed(1)}%
-                          </div>
-                        )}
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm text-white/60">{stat.title}</p>

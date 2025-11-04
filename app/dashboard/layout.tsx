@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
+import { ProjectSwitcher } from '@/components/project-switcher';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
@@ -85,7 +86,6 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [notifications] = useState(3); // Mock notifications count
 
   useEffect(() => {
     setIsHydrated(true);
@@ -342,6 +342,9 @@ export default function DashboardLayout({
               <Breadcrumb pathname={pathname} />
             </div>
 
+            {/* Project Switcher */}
+            <ProjectSwitcher />
+
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
               {/* Search Button */}
@@ -366,12 +369,9 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-white hover:bg-white/10 relative"
+                className="text-gray-400 hover:text-white hover:bg-white/10"
               >
                 <Bell className="h-5 w-5" />
-                {notifications > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                )}
               </Button>
 
               {/* Plan Badge */}

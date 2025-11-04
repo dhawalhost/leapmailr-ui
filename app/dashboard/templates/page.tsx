@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { templateAPI } from '@/lib/api';
+import { useProjectStore } from '@/lib/store';
 import {
   Plus,
   Edit,
@@ -72,11 +73,12 @@ export default function TemplatesPage() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [previewMode, setPreviewMode] = useState<'code' | 'preview'>('code');
+  const { currentProject } = useProjectStore();
 
   useEffect(() => {
     loadTemplates();
     loadCategories();
-  }, []);
+  }, [currentProject]);
 
   useEffect(() => {
     if (activeTab === 'gallery') {
@@ -87,7 +89,8 @@ export default function TemplatesPage() {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const response = await templateAPI.list();
+      const params = currentProject ? { project_id: currentProject.id } : {};
+      const response = await templateAPI.list(params);
       // API returns { data: [...templates] } directly, not { data: { templates: [...] } }
       setTemplates(response.data.data || []);
     } catch (error) {

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { templateAPI } from '@/lib/api';
+import { useProjectStore } from '@/lib/store';
 import {
   ArrowLeft,
   Save,
@@ -21,6 +22,7 @@ import {
 export default function NewTemplatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { currentProject } = useProjectStore();
   
   // Get template data from URL params if coming from "Use Template"
   const initialName = searchParams.get('name') || '';
@@ -69,6 +71,7 @@ export default function NewTemplatePage() {
       
       // Map formData to API expected field names
       const templateData = {
+        project_id: currentProject?.id,
         name: formData.name,
         subject: formData.subject,
         html_content: formData.html_body,

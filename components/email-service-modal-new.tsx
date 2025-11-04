@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { emailServiceAPI } from '@/lib/api';
+import { useProjectStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -145,6 +146,7 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
       };
 
       await emailServiceAPI.create({
+        project_id: useProjectStore.getState().currentProject?.id,
         name: serviceName,
         provider: 'smtp',
         configuration: config,
