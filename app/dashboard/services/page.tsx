@@ -36,6 +36,7 @@ import {
 import { EmailServiceModalNew } from '@/components/email-service-modal-new';
 import { EditEmailServiceModal } from '@/components/edit-email-service-modal';
 import { TestServiceModal } from '@/components/test-service-modal';
+import { ProviderLogo } from '@/components/provider-logo';
 
 export default function EmailServicesPage() {
   const [services, setServices] = useState<EmailService[]>([]);
@@ -291,14 +292,10 @@ export default function EmailServicesPage() {
                               color: service.provider_color || metadata?.color 
                             }}
                           >
-                            {service.provider_logo ? (
-                              <div 
-                                className="w-8 h-8"
-                                dangerouslySetInnerHTML={{ __html: service.provider_logo }}
-                              />
-                            ) : (
-                              <Mail className="w-8 h-8" />
-                            )}
+                            <ProviderLogo 
+                              provider={service.provider} 
+                              className="w-8 h-8"
+                            />
                           </div>
                           <div className="flex-1">
                             <CardTitle className="text-lg mb-1">{service.name}</CardTitle>

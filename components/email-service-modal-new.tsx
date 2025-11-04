@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Sparkles,
 } from 'lucide-react';
+import { ProviderLogo } from '@/components/provider-logo';
 
 interface SMTPProvider {
   id: string;
@@ -259,7 +260,10 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                             >
                               <CardHeader>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Mail className="h-6 w-6 text-green-600" />
+                                  <ProviderLogo 
+                                    provider={provider.id} 
+                                    className="h-6 w-6"
+                                  />
                                   {provider.help_url && (
                                     <ExternalLink className="h-4 w-4 text-gray-400" />
                                   )}
@@ -299,7 +303,10 @@ export function EmailServiceModalNew({ open, onClose, onSuccess }: EmailServiceM
                             >
                               <CardHeader>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Server className="h-6 w-6 text-blue-600" />
+                                  <ProviderLogo 
+                                    provider={provider.id} 
+                                    className="h-6 w-6"
+                                  />
                                   {provider.help_url && (
                                     <ExternalLink className="h-4 w-4 text-gray-400" />
                                   )}
