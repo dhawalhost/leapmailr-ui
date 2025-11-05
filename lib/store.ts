@@ -15,8 +15,9 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  csrfToken: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  setAuth: (user: User, accessToken: string, refreshToken: string, csrfToken?: string) => void;
   clearAuth: () => void;
 }
 
@@ -26,20 +27,25 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
+      csrfToken: null,
       isAuthenticated: false,
-      setAuth: (user, accessToken, refreshToken) => {
+      setAuth: (user, accessToken, refreshToken, csrfToken) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('access_token', accessToken);
           localStorage.setItem('refresh_token', refreshToken);
+          if (csrfToken) {
+            localStorage.setItem('csrf_token', csrfToken);
+          }
         }
-        set({ user, accessToken, refreshToken, isAuthenticated: true });
+        set({ user, accessToken, refreshToken, csrfToken, isAuthenticated: true });
       },
       clearAuth: () => {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          localStorage.removeItem('csrf_token');
         }
-        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+        set({ user: null, accessToken: null, refreshToken: null, csrfToken: null, isAuthenticated: false });
       },
     }),
     {

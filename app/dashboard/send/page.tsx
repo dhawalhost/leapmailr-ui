@@ -27,6 +27,7 @@ import {
   Search,
   Reply,
   Sparkles,
+  MousePointer,
   Edit3,
 } from 'lucide-react';
 
@@ -75,6 +76,9 @@ export default function SendEmailPage() {
   const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
   const [autoReplyTemplate, setAutoReplyTemplate] = useState<Template | null>(null);
   const [showAutoReplySelector, setShowAutoReplySelector] = useState(false);
+  
+  // Email Tracking
+  const [enableTracking, setEnableTracking] = useState(true);
   
   // Scheduling
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -264,6 +268,7 @@ export default function SendEmailPage() {
           template_id: selectedTemplate?.id,
           template_params: parameters, // Backend expects template_params, not variables
           service_id: selectedService,
+          enable_tracking: enableTracking,
           auto_reply_enabled: autoReplyEnabled,
           auto_reply_template_id: autoReplyTemplate?.id,
         };
@@ -776,6 +781,48 @@ export default function SendEmailPage() {
                             onChange={(e) => setScheduleTime(e.target.value)}
                             className="mt-2 bg-gray-800/50 border-gray-700 text-white"
                           />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Email Tracking Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/30 border border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <Eye className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="font-medium text-white">Track Email Engagement</p>
+                          <p className="text-sm text-gray-400">Track opens and clicks automatically</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEnableTracking(!enableTracking)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          enableTracking ? 'bg-primary' : 'bg-gray-700'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            enableTracking ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {enableTracking && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30"
+                      >
+                        <div className="flex items-start gap-3">
+                          <MousePointer className="h-5 w-5 text-blue-400 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="text-blue-400 font-medium mb-1">Tracking Enabled</p>
+                            <p className="text-gray-400">
+                              We'll track when recipients open your email and click links. 
+                              View analytics in the Analytics dashboard.
+                            </p>
+                          </div>
                         </div>
                       </motion.div>
                     )}

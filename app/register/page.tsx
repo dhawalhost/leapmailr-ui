@@ -53,8 +53,8 @@ export default function RegisterPage() {
         last_name: data.last_name,
       });
 
-      const { user, access_token, refresh_token } = response.data.data;
-      setAuth(user, access_token, refresh_token);
+      const { user, access_token, refresh_token, csrf_token } = response.data.data;
+      setAuth(user, access_token, refresh_token, csrf_token);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');

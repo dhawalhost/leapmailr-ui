@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Sparkles, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,6 +26,10 @@ export default function LoginPage() {
   const setAuth = useAuthStore((state) => state.setAuth);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [useBackupCode, setUseBackupCode] = useState(false);
 
   const {
     register,
@@ -41,11 +45,45 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login(data);
-      const { user, access_token, refresh_token } = response.data.data;
-      setAuth(user, access_token, refresh_token);
+      
+      // Check if MFA is required (status field in response)
+      if (response.data.status === 'mfa_required' || response.data.mfa_enabled) {
+        setMfaRequired(true);
+        setLoginCredentials(data);
+        setError('');
+        setIsLoading(false);
+        return;
+      }
+
+      const { user, access_token, refresh_token, csrf_token } = response.data.data;
+      setAuth(user, access_token, refresh_token, csrf_token);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginCredentials || !mfaCode) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.loginMFA({
+        email: loginCredentials.email,
+        password: loginCredentials.password,
+        code: mfaCode,
+        backup_code: useBackupCode,
+      });
+      const { user, access_token, refresh_token, csrf_token } = response.data.data;
+      setAuth(user, access_token, refresh_token, csrf_token);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid verification code. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +158,73 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {mfaRequired ? (
+            /* MFA Verification Form */
+            <form onSubmit={onMfaSubmit} className="space-y-6">
+              <div className="text-center py-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                  <Shield className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Two-Factor Authentication</h2>
+                <p className="text-sm text-muted-foreground">
+                  {useBackupCode
+                    ? 'Enter one of your backup codes'
+                    : 'Enter the verification code from your authenticator app'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mfa-code">
+                  {useBackupCode ? 'Backup Code' : 'Verification Code'}
+                </Label>
+                <Input
+                  id="mfa-code"
+                  type="text"
+                  maxLength={useBackupCode ? 16 : 6}
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
+                  placeholder={useBackupCode ? 'XXXX-XXXX-XXXX-XXXX' : '000000'}
+                  className={`text-center text-2xl tracking-widest font-mono ${
+                    useBackupCode ? '' : 'tracking-wider'
+                  }`}
+                  autoFocus
+                />
+              </div>
+
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading || !mfaCode}>
+                {isLoading ? 'Verifying...' : 'Verify and Sign In'}
+              </Button>
+
+              <div className="text-center space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseBackupCode(!useBackupCode);
+                    setMfaCode('');
+                  }}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {useBackupCode ? 'Use authenticator app instead' : 'Use backup code instead'}
+                </button>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaRequired(false);
+                      setLoginCredentials(null);
+                      setMfaCode('');
+                      setUseBackupCode(false);
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    ← Back to login
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            /* Regular Login Form */
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -181,7 +285,10 @@ export default function LoginPage() {
               </Link>
             </div>
           </form>
+          )}
 
+          {!mfaRequired && (
+          <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -222,6 +329,8 @@ export default function LoginPage() {
               GitHub
             </Button>
           </div>
+          </>
+          )}
         </motion.div>
       </div>
     </div>

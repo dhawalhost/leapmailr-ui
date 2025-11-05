@@ -7,7 +7,17 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important: Enable sending cookies with requests
 });
+
+// Helper function to get cookie value
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
@@ -16,6 +26,15 @@ api.interceptors.request.use(
       const token = localStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+      
+      // Add CSRF token for non-GET requests
+      // Try to get from cookie first, then fallback to localStorage
+      if (config.method && config.method.toLowerCase() !== 'get') {
+        const csrfToken = getCookie('csrf_token') || localStorage.getItem('csrf_token');
+        if (csrfToken) {
+          config.headers['X-CSRF-Token'] = csrfToken;
+        }
       }
     }
     return config;
@@ -70,6 +89,9 @@ export const authAPI = {
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
   
+  loginMFA: (data: { email: string; password: string; code: string; backup_code?: boolean }) =>
+    api.post('/auth/login-mfa', data),
+  
   logout: () =>
     api.post('/auth/logout'),
   
@@ -118,7 +140,7 @@ export const emailAPI = {
 
 // Email Service API
 export const emailServiceAPI = {
-  list: (params?: { provider?: string; status?: string; limit?: number; offset?: number }) =>
+  list: (params?: { provider?: string; status?: string; limit?: number; offset?: number; project_id?: string }) =>
     api.get('/email-services', { params }),
   
   get: (id: string) =>
@@ -157,13 +179,23 @@ export const emailServiceAPI = {
     api.post(`/email-services/${id}/default`),
 };
 
-// Analytics API (to be implemented)
+// Analytics API
 export const analyticsAPI = {
   getOverview: () =>
     api.get('/analytics/overview'),
   
   getEmailStats: (params?: { start_date?: string; end_date?: string }) =>
     api.get('/analytics/emails', { params }),
+  
+  // Email tracking analytics
+  getEmailAnalytics: (emailId: string) =>
+    api.get(`/analytics/email/${emailId}`),
+  
+  getEmailTrackingEvents: (emailId: string) =>
+    api.get(`/analytics/email/${emailId}/events`),
+  
+  getCampaignAnalytics: (campaignId: string) =>
+    api.get(`/analytics/campaign/${campaignId}`),
 };
 
 // Project API
@@ -198,4 +230,22 @@ export const projectAPI = {
   
   setDefault: (id: string) =>
     api.post(`/projects/${id}/default`),
+};
+
+// MFA API
+export const mfaAPI = {
+  setup: (data: { password: string }) =>
+    api.post('/mfa/setup', data),
+  
+  verifySetup: (data: { code: string }) =>
+    api.post('/mfa/verify-setup', data),
+  
+  disable: (data: { password: string; code: string }) =>
+    api.post('/mfa/disable', data),
+  
+  getStatus: () =>
+    api.get('/mfa/status'),
+  
+  regenerateBackupCodes: (data: { password: string }) =>
+    api.post('/mfa/regenerate-backup-codes', data),
 };

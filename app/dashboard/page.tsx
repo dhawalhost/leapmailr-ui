@@ -70,24 +70,33 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [emailsRes, templatesRes] = await Promise.all([
-        emailAPI.history({ limit: 10 }),
+      const [allEmailsRes, recentEmailsRes, templatesRes] = await Promise.all([
+        emailAPI.history(), // Fetch ALL emails for stats calculation
+        emailAPI.history({ limit: 10 }), // Fetch recent 10 for display
         templateAPI.list({ limit: 4, is_active: true }),
       ]);
 
-      setRecentEmails(emailsRes.data.data || []);
+      setRecentEmails(recentEmailsRes.data.data || []);
       setTemplates(templatesRes.data.data || []);
 
-      // Calculate stats from actual email data
-      const emails = emailsRes.data.data || [];
+      // Calculate stats from ALL emails, not just recent 10
+      const allEmails = allEmailsRes.data.data || [];
+      
+      // Debug logging
+      console.log('All emails:', allEmails);
+      console.log('Total emails:', allEmails.length);
+      console.log('Delivered emails:', allEmails.filter((e: any) => e.status === 'delivered' || e.status === 'sent'));
+      
       const newStats = {
-        totalSent: emails.length,
-        delivered: emails.filter((e: any) => e.status === 'delivered').length,
-        failed: emails.filter((e: any) => e.status === 'failed').length,
-        pending: emails.filter((e: any) => e.status === 'queued' || e.status === 'sent').length,
-        opens: emails.filter((e: any) => e.opened_at).length,
-        clicks: emails.filter((e: any) => e.clicked_at).length,
+        totalSent: allEmails.length,
+        delivered: allEmails.filter((e: any) => e.status === 'delivered' || e.status === 'sent').length,
+        failed: allEmails.filter((e: any) => e.status === 'failed' || e.status === 'bounced').length,
+        pending: allEmails.filter((e: any) => e.status === 'queued' || e.status === 'pending').length,
+        opens: allEmails.filter((e: any) => e.opened_at).length,
+        clicks: allEmails.filter((e: any) => e.clicked_at).length,
       };
+      
+      console.log('Calculated stats:', newStats);
       setStats(newStats);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -331,32 +340,47 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   recentEmails.slice(0, 5).map((email, index) => (
-                    <motion.div
-                      key={email.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
-                      className="flex items-start gap-4 p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gray-700/50 flex items-center justify-center flex-shrink-0">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-medium text-white truncate">{email.subject || 'No Subject'}</h4>
-                          {getStatusBadge(email.status)}
+                    <Link key={email.id} href={`/dashboard/emails/${email.id}`}>
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
+                        className="flex items-start gap-4 p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30 cursor-pointer"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gray-700/50 flex items-center justify-center flex-shrink-0">
+                          <Mail className="h-5 w-5 text-gray-400" />
                         </div>
-                        <p className="text-sm text-gray-400 truncate">To: {email.to_email}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(email.sent_at || email.created_at).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
-                      </div>
-                    </motion.div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h4 className="font-medium text-white truncate">{email.subject || 'No Subject'}</h4>
+                            {getStatusBadge(email.status)}
+                          </div>
+                          <p className="text-sm text-gray-400 truncate">To: {email.to_email}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <p className="text-xs text-gray-500">
+                              {new Date(email.sent_at || email.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                            {email.opened_at && (
+                              <span className="flex items-center gap-1 text-xs text-purple-400">
+                                <Eye className="h-3 w-3" />
+                                Opened
+                              </span>
+                            )}
+                            {email.clicked_at && (
+                              <span className="flex items-center gap-1 text-xs text-blue-400">
+                                <MousePointer className="h-3 w-3" />
+                                Clicked
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    </Link>
                   ))
                 )}
               </div>
