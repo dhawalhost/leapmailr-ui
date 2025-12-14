@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: leapmailr-frontend
+  namespace: argocd
+  annotations:
+    # ArgoCD Image Updater
+    argocd-image-updater.argoproj.io/image-list: |
+      frontend=ghcr.io/dhawalhost/leapmailr-ui
+
+    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
+
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-target: helmvalues:/charts/values.yaml
+
+    argocd-image-updater.argoproj.io/frontend.helm.image-tag: workloads.frontend.image.tag
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/dhawalhost/leapmailr-ui.git
+    targetRevision: main
+    path: charts
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: leapmailr
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

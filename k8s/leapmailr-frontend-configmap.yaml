@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: leapmailr-frontend-config
+  namespace: leapmailr
+data:
+  NEXT_PUBLIC_API_URL: "https://api.leapmailr.dhawalhost.com/api/v1"
