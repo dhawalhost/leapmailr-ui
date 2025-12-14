@@ -182,6 +182,24 @@ npm run lint
 npx tsc --noEmit
 ```
 
+## 🚢 Releases (Conventional Commits)
+
+This repo uses **Conventional Commits** to automatically generate semver tags.
+
+**How it works**
+- Merges to `main` run `.github/workflows/release.yml` (**Release (Conventional Commits)**).
+- It creates a git tag like `v0.2.3`, updates `CHANGELOG.md`, and creates a GitHub Release.
+- Tag pushes (`v*`) trigger `.github/workflows/ci-cd.yml` to build/push Docker images to GHCR.
+- ArgoCD Image Updater tracks the highest semver tag and updates Helm values accordingly.
+
+**Required secret (recommended)**
+- Add a repo secret named `RELEASE_TOKEN` (a GitHub PAT). This ensures the tag pushed by the release workflow can trigger the image-build workflow.
+
+**Version bump rules**
+- `fix: ...` → patch
+- `feat: ...` → minor
+- `feat!: ...` or a commit body containing `BREAKING CHANGE:` → major
+
 ## 📝 Environment Variables
 
 | Variable | Description | Default |

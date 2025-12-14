@@ -29,7 +29,7 @@ echo ""
 echo "🔨 Building frontend Docker image..."
 docker build \
     --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1} \
-    -t leapmailr-frontend:local .
+    -t leapmailr-ui:local .
 echo -e "${GREEN}✓ Frontend image built${NC}"
 
 # Check if .env.local exists
@@ -59,13 +59,13 @@ if curl -f http://localhost:3000 &> /dev/null; then
     echo -e "${GREEN}✓ Frontend is healthy${NC}"
 else
     echo -e "${YELLOW}⚠️  Frontend health check failed${NC}"
-    echo "   Check logs: docker logs leapmailr-frontend"
+    echo "   Check logs: docker logs leapmailr-ui"
 fi
 
 # Show running containers
 echo ""
 echo "📊 Running container:"
-docker ps --filter "name=leapmailr-frontend"
+docker ps --filter "name=leapmailr-ui"
 
 echo ""
 echo "✅ Deployment complete!"
