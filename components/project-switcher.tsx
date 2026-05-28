@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Check, ChevronsUpDown, Plus, Folder } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProjectStore } from '@/lib/store';
-import { projectAPI } from '@/lib/api';
+import { getAPIErrorMessage, projectAPI } from '@/lib/api';
 import { Project, CreateProjectRequest } from '@/types/project';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,27 +36,27 @@ export function ProjectSwitcher() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      fetchProjects();
-    }
-  }, [mounted]);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       const response = await projectAPI.list();
       setProjects(response.data);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load projects',
+        description: getAPIErrorMessage(error, 'Failed to load projects'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setProjects, toast]);
+
+  useEffect(() => {
+    if (mounted) {
+      fetchProjects();
+    }
+  }, [fetchProjects, mounted]);
 
   const handleSelectProject = (project: Project) => {
     setCurrentProject(project);
@@ -100,10 +100,10 @@ export function ProjectSwitcher() {
       
       // Refresh projects list
       await fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to create project',
+        description: getAPIErrorMessage(error, 'Failed to create project'),
         variant: 'destructive',
       });
     } finally {
@@ -117,12 +117,12 @@ export function ProjectSwitcher() {
       <div className="relative">
         <Button
           variant="outline"
-          className="w-[250px] justify-between bg-gray-800 border-gray-700"
+          className="w-[250px] justify-between bg-card/90 border-border/70"
           disabled
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-3 h-3 rounded-full flex-shrink-0 bg-gray-600" />
-            <span className="truncate text-gray-400">Loading...</span>
+            <div className="w-3 h-3 rounded-full shrink-0 bg-muted-foreground" />
+            <span className="truncate text-muted-foreground">Loading...</span>
           </div>
         </Button>
       </div>
@@ -136,12 +136,12 @@ export function ProjectSwitcher() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[250px] justify-between bg-gray-800 border-gray-700 hover:bg-gray-700"
+          className="w-[250px] justify-between bg-card/90 border-border/70 hover:bg-accent/40"
           onClick={() => setOpen(!open)}
         >
           <div className="flex items-center gap-2 min-w-0">
             <div 
-              className="w-3 h-3 rounded-full flex-shrink-0" 
+              className="w-3 h-3 rounded-full shrink-0" 
               style={{ backgroundColor: currentProject?.color || '#3b82f6' }}
             />
             <span className="truncate">
@@ -157,31 +157,31 @@ export function ProjectSwitcher() {
               className="fixed inset-0 z-40" 
               onClick={() => setOpen(false)}
             />
-            <div className="absolute top-full left-0 mt-2 w-[250px] z-50 bg-gray-800 border border-gray-700 rounded-md shadow-lg">
+            <div className="absolute top-full left-0 mt-2 w-[250px] z-50 bg-card/95 border border-border/70 rounded-xl shadow-lg backdrop-blur-xl">
               <div className="p-2 space-y-1">
                 {projects.map((project) => (
                   <button
                     key={project.id}
                     onClick={() => handleSelectProject(project)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-700 text-left transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent/40 text-left transition-colors"
                   >
                     <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0" 
+                      className="w-3 h-3 rounded-full shrink-0" 
                       style={{ backgroundColor: project.color }}
                     />
-                    <span className="flex-1 truncate text-gray-200">{project.name}</span>
+                    <span className="flex-1 truncate text-foreground">{project.name}</span>
                     {currentProject?.id === project.id && (
-                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                      <Check className="h-4 w-4 text-primary shrink-0" />
                     )}
                   </button>
                 ))}
-                <div className="border-t border-gray-700 my-1" />
+                <div className="border-t border-border/70 my-1" />
                 <button
                   onClick={() => {
                     setOpen(false);
                     setCreateDialogOpen(true);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-700 text-primary transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent/40 text-primary transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Create project</span>
@@ -193,10 +193,10 @@ export function ProjectSwitcher() {
       </div>
 
       <AlertDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <AlertDialogContent className="bg-gray-900 border-gray-700">
+          <AlertDialogContent className="bg-card/95 border-border/70 backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Create New Project</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
+            <AlertDialogTitle className="text-foreground">Create New Project</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Create a new project to organize your email services and templates.
             </AlertDialogDescription>
           </AlertDialogHeader>

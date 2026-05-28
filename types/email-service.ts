@@ -28,13 +28,13 @@ export interface EmailService {
 export interface CreateEmailServiceRequest {
   name: string;
   provider: EmailServiceProvider;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   is_default?: boolean;
 }
 
 export interface UpdateEmailServiceRequest {
   name?: string;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
   is_default?: boolean;
   status?: EmailServiceStatus;
 }

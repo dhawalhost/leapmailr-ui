@@ -1,58 +1,86 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  
-  /* Light mode colors */
-  --color-background: oklch(98% 0.005 264);
-  --color-foreground: oklch(15% 0.02 264);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(15% 0.02 264);
-  --color-popover: oklch(100% 0 0);
-  --color-popover-foreground: oklch(15% 0.02 264);
-  --color-primary: oklch(65% 0.19 145);
-  --color-primary-foreground: oklch(98% 0.007 247);
-  --color-secondary: oklch(96% 0.007 247);
-  --color-secondary-foreground: oklch(14% 0.027 285);
-  --color-muted: oklch(96% 0.007 247);
-  --color-muted-foreground: oklch(54% 0.023 257);
-  --color-accent: oklch(96% 0.007 247);
-  --color-accent-foreground: oklch(14% 0.027 285);
-  --color-destructive: oklch(62.8% 0.257 29);
-  --color-destructive-foreground: oklch(98% 0.007 247);
-  --color-border: oklch(90% 0.016 258);
-  --color-input: oklch(90% 0.016 258);
-  --color-ring: oklch(65% 0.19 145);
-  
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --font-family-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-hanken-grotesk), var(--font-family-sans);
+  --font-family-label: var(--font-geist), var(--font-family-sans);
+  --font-family-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 0.5rem);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.5rem);
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    /* Dark mode colors - matching Monetra design */
-    --color-background: oklch(18% 0.015 264);
-    --color-foreground: oklch(98% 0.007 247);
-    --color-card: oklch(20% 0.015 264);
-    --color-card-foreground: oklch(98% 0.007 247);
-    --color-popover: oklch(20% 0.015 264);
-    --color-popover-foreground: oklch(98% 0.007 247);
-    --color-primary: oklch(75% 0.22 145);
-    --color-primary-foreground: oklch(15% 0.02 264);
-    --color-secondary: oklch(25% 0.02 264);
-    --color-secondary-foreground: oklch(98% 0.007 247);
-    --color-muted: oklch(25% 0.02 264);
-    --color-muted-foreground: oklch(70% 0.021 257);
-    --color-accent: oklch(25% 0.02 264);
-    --color-accent-foreground: oklch(98% 0.007 247);
-    --color-destructive: oklch(50% 0.2 29);
-    --color-destructive-foreground: oklch(98% 0.007 247);
-    --color-border: oklch(28% 0.02 264);
-    --color-input: oklch(28% 0.02 264);
-    --color-ring: oklch(75% 0.22 145);
-  }
+:root,
+.light {
+  --radius: 1rem;
+  --background: oklch(0.985 0.003 247);
+  --foreground: oklch(0.204 0.022 262);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.204 0.022 262);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.204 0.022 262);
+  --primary: oklch(0.694 0.157 151);
+  --primary-foreground: oklch(0.187 0.028 151);
+  --secondary: oklch(0.956 0.008 248);
+  --secondary-foreground: oklch(0.244 0.023 264);
+  --muted: oklch(0.962 0.006 250);
+  --muted-foreground: oklch(0.56 0.018 258);
+  --accent: oklch(0.949 0.011 228);
+  --accent-foreground: oklch(0.244 0.023 264);
+  --destructive: oklch(0.582 0.214 27);
+  --destructive-foreground: oklch(0.985 0.007 247);
+  --border: oklch(0.908 0.014 255);
+  --input: oklch(0.908 0.014 255);
+  --ring: oklch(0.694 0.157 151);
+}
+
+.dark {
+  --radius: 1rem;
+  --background: oklch(0.17 0.01 258);
+  --foreground: oklch(0.955 0.006 247);
+  --card: oklch(0.205 0.014 257);
+  --card-foreground: oklch(0.955 0.006 247);
+  --popover: oklch(0.205 0.014 257);
+  --popover-foreground: oklch(0.955 0.006 247);
+  --primary: oklch(0.724 0.173 151);
+  --primary-foreground: oklch(0.19 0.024 151);
+  --secondary: oklch(0.262 0.015 258);
+  --secondary-foreground: oklch(0.955 0.006 247);
+  --muted: oklch(0.255 0.015 258);
+  --muted-foreground: oklch(0.74 0.016 257);
+  --accent: oklch(0.282 0.019 235);
+  --accent-foreground: oklch(0.955 0.006 247);
+  --destructive: oklch(0.555 0.201 28);
+  --destructive-foreground: oklch(0.955 0.006 247);
+  --border: oklch(0.31 0.016 258);
+  --input: oklch(0.31 0.016 258);
+  --ring: oklch(0.724 0.173 151);
 }
 
 * {
@@ -60,8 +88,45 @@
 }
 
 body {
-  @apply bg-background text-foreground;
+  @apply bg-background text-foreground min-h-screen;
   font-family: var(--font-family-sans);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in oklch, var(--color-primary) 12%, transparent) 0%,
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, var(--color-accent) 9%, transparent) 0%,
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--color-background) 96%, black) 0%,
+      var(--color-background) 48%,
+      color-mix(in oklch, var(--color-background) 92%, black) 100%
+    );
+  background-attachment: fixed;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-display);
+}
 
+label,
+button,
+[role="tab"],
+[role="menuitem"] {
+  font-family: var(--font-family-label);
+}
+
+::selection {
+  background: color-mix(in oklch, var(--color-primary) 28%, transparent);
+  color: var(--color-primary-foreground);
+}

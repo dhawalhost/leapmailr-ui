@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,16 +11,11 @@ import {
   ArrowLeft,
   Mail,
   Clock,
-  CheckCircle2,
-  XCircle,
   Eye,
   MousePointer,
   Smartphone,
   Monitor,
   Tablet,
-  MapPin,
-  Calendar,
-  User,
   Link as LinkIcon,
   TrendingUp,
   Activity,
@@ -73,18 +68,6 @@ interface EmailAnalytics {
   }>;
 }
 
-interface TrackingEvent {
-  id: string;
-  ip_address: string;
-  user_agent: string;
-  device?: string;
-  email_client?: string;
-  location?: string;
-  opened_at?: string;
-  clicked_at?: string;
-  link_url?: string;
-}
-
 export default function EmailDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -93,14 +76,9 @@ export default function EmailDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<EmailDetails | null>(null);
   const [analytics, setAnalytics] = useState<EmailAnalytics | null>(null);
-  const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [analyticsError, setAnalyticsError] = useState(false);
 
-  useEffect(() => {
-    loadEmailDetails();
-  }, [emailId]);
-
-  const loadEmailDetails = async () => {
+  const loadEmailDetails = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -115,18 +93,20 @@ export default function EmailDetailsPage() {
         setAnalytics(analyticsResponse.data.data);
         
         // Load tracking events
-        const eventsResponse = await analyticsAPI.getEmailTrackingEvents(emailId);
-        setEvents(eventsResponse.data.data?.open_events || []);
-      } catch (err) {
-        console.log('No tracking data available for this email');
+        await analyticsAPI.getEmailTrackingEvents(emailId);
+      } catch {
         setAnalyticsError(true);
       }
-    } catch (error) {
-      console.error('Failed to load email details:', error);
+    } catch {
+      setAnalyticsError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [emailId]);
+
+  useEffect(() => {
+    loadEmailDetails();
+  }, [loadEmailDetails]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -161,7 +141,7 @@ export default function EmailDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+      <div className="min-h-screen bg-background p-8 text-foreground">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[oklch(65%_0.19_145)]" />
@@ -173,7 +153,7 @@ export default function EmailDetailsPage() {
 
   if (!email) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+      <div className="min-h-screen bg-background p-8 text-foreground">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-20">
             <p className="text-white/60">Email not found</p>
@@ -187,7 +167,7 @@ export default function EmailDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+    <div className="min-h-screen bg-background p-8 text-foreground">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <motion.div
@@ -199,14 +179,14 @@ export default function EmailDetailsPage() {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="text-white/60 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Email Details</h1>
-              <p className="text-white/60">Track email delivery and engagement</p>
+              <p className="text-muted-foreground">Track email delivery and engagement</p>
             </div>
           </div>
 
@@ -223,7 +203,7 @@ export default function EmailDetailsPage() {
             transition={{ delay: 0.1 }}
             className="lg:col-span-2"
           >
-            <Card className="bg-white/5 backdrop-blur-xl border-white/10">
+            <Card className="bg-card/90 backdrop-blur-xl border-border/70">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-5 h-5 text-primary" />
@@ -232,38 +212,38 @@ export default function EmailDetailsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-white/60 mb-1">Subject</p>
-                  <p className="text-white font-medium">{email.subject}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Subject</p>
+                  <p className="text-foreground font-medium">{email.subject}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-white/60 mb-1">To</p>
-                    <p className="text-white">{email.to_name || email.to_email}</p>
+                    <p className="text-sm text-muted-foreground mb-1">To</p>
+                    <p className="text-foreground">{email.to_name || email.to_email}</p>
                     {email.to_name && (
-                      <p className="text-sm text-white/40">{email.to_email}</p>
+                      <p className="text-sm text-muted-foreground">{email.to_email}</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm text-white/60 mb-1">From</p>
-                    <p className="text-white">{email.from_name || email.from_email}</p>
+                    <p className="text-sm text-muted-foreground mb-1">From</p>
+                    <p className="text-foreground">{email.from_name || email.from_email}</p>
                     {email.from_name && (
-                      <p className="text-sm text-white/40">{email.from_email}</p>
+                      <p className="text-sm text-muted-foreground">{email.from_email}</p>
                     )}
                   </div>
                 </div>
 
                 {email.template && (
                   <div>
-                    <p className="text-sm text-white/60 mb-1">Template</p>
-                    <p className="text-white">{email.template.name}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Template</p>
+                    <p className="text-foreground">{email.template.name}</p>
                   </div>
                 )}
 
                 {email.service && (
                   <div>
-                    <p className="text-sm text-white/60 mb-1">Email Service</p>
-                    <p className="text-white">{email.service.name}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Email Service</p>
+                    <p className="text-foreground">{email.service.name}</p>
                   </div>
                 )}
 
@@ -392,7 +372,7 @@ export default function EmailDetailsPage() {
                   transition={{ delay: 0.3 + index * 0.05 }}
                 >
                   <Card className="relative overflow-hidden bg-white/5 backdrop-blur-xl border-white/10">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-50`} />
+                    <div className={`absolute inset-0 bg-linear-to-br ${stat.color} opacity-50`} />
                     <CardContent className="relative p-6">
                       <div className="flex items-center justify-between mb-2">
                         <stat.icon className="w-5 h-5 text-white/60" />
@@ -438,7 +418,7 @@ export default function EmailDetailsPage() {
                             </div>
                             <div className="w-full bg-white/5 rounded-full h-2">
                               <div
-                                className="bg-gradient-to-r from-primary to-primary/60 h-2 rounded-full transition-all"
+                                className="bg-linear-to-r from-primary to-primary/60 h-2 rounded-full transition-all"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
@@ -477,7 +457,7 @@ export default function EmailDetailsPage() {
                             </div>
                             <div className="w-full bg-white/5 rounded-full h-2">
                               <div
-                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
+                                className="bg-linear-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
@@ -507,7 +487,7 @@ export default function EmailDetailsPage() {
                       {analytics.top_links.map((link, index) => (
                         <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <LinkIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                            <LinkIcon className="w-4 h-4 text-primary shrink-0" />
                             <div className="min-w-0 flex-1">
                               <p className="text-white text-sm truncate">{link.link_url}</p>
                               {link.link_text && (
@@ -515,7 +495,7 @@ export default function EmailDetailsPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
+                          <div className="flex items-center gap-4 shrink-0">
                             <div className="text-right">
                               <p className="text-white font-medium">{link.total_clicks}</p>
                               <p className="text-white/60 text-xs">{link.unique_clicks} unique</p>

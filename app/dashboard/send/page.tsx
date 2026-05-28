@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { templateAPI, emailAPI, emailServiceAPI } from '@/lib/api';
 import {
   Send,
@@ -23,12 +23,11 @@ import {
   Calendar,
   Paperclip,
   Trash2,
-  ChevronDown,
   Search,
   Reply,
-  Sparkles,
   MousePointer,
   Edit3,
+  Lightbulb,
 } from 'lucide-react';
 
 interface Template {
@@ -89,7 +88,7 @@ export default function SendEmailPage() {
   const [attachments, setAttachments] = useState<{ name: string; size: string }[]>([]);
   
   // UI States
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showPreview, setShowPreview] = useState(false);
@@ -101,10 +100,6 @@ export default function SendEmailPage() {
 
   useEffect(() => {
     if (selectedTemplate) {
-      console.log('Selected template:', selectedTemplate);
-      console.log('Template variables raw:', selectedTemplate.variables);
-      console.log('Template variables type:', typeof selectedTemplate.variables);
-      
       setSubject(selectedTemplate.subject);
       setHtmlContent(selectedTemplate.html_content || selectedTemplate.html_body || '');
       setTextContent(selectedTemplate.text_content || selectedTemplate.text_body || '');
@@ -112,8 +107,6 @@ export default function SendEmailPage() {
       // Initialize parameters for template variables
       const params: Record<string, string> = {};
       const vars = parseVariables(selectedTemplate.variables);
-      console.log('Parsed variables:', vars);
-      
       vars.forEach((v) => {
         params[v] = '';
       });
@@ -132,8 +125,8 @@ export default function SendEmailPage() {
     try {
       const response = await templateAPI.get(templateId);
       setAutoReplyTemplate(response.data.data);
-    } catch (error) {
-      console.error('Failed to load auto-reply template:', error);
+    } catch {
+      setStatus('error');
     }
   };
 
@@ -185,11 +178,11 @@ export default function SendEmailPage() {
       setServices(servicesRes.data.services || []);
       
       // Auto-select first service if available
-      if (servicesRes.data.data?.length > 0) {
-        setSelectedService(servicesRes.data.data[0].id);
+      if (servicesRes.data.services?.length > 0) {
+        setSelectedService(servicesRes.data.services[0].id);
       }
-    } catch (error) {
-      console.error('Failed to load data:', error);
+    } catch {
+      setStatus('error');
     } finally {
       setLoading(false);
     }
@@ -273,9 +266,6 @@ export default function SendEmailPage() {
           auto_reply_template_id: autoReplyTemplate?.id,
         };
 
-        console.log('Sending email with data:', emailData);
-        console.log('Template params:', parameters);
-
         await emailAPI.send(emailData);
       }
 
@@ -284,7 +274,7 @@ export default function SendEmailPage() {
         router.push('/dashboard');
       }, 2000);
     } catch (error) {
-      console.error('Failed to send email:', error);
+      void error;
       setStatus('error');
     } finally {
       setSending(false);
@@ -307,22 +297,44 @@ export default function SendEmailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-8 pb-10 text-foreground">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        className="rounded-4xl border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)] p-6 md:p-8"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Send Email</h1>
-          <p className="text-gray-400">Compose and send emails to your recipients</p>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4 font-family-label">
+              <Mail className="h-3.5 w-3.5" />
+              Composer workspace
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3 tracking-tight">Send Email</h1>
+            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+              Build a message, preview the output, and keep templates, tracking, scheduling, and auto-replies in one focused flow.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
+            <div className="rounded-2xl border border-border/70 bg-accent/20 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Recipients</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{recipients.filter((recipient) => recipient.email).length}</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-accent/20 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Template</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{selectedTemplate ? 'Ready' : 'None'}</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-accent/20 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Tracking</p>
+              <p className="mt-1 text-lg font-semibold text-foreground">{enableTracking ? 'On' : 'Off'}</p>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <Button
             variant="outline"
             onClick={() => setShowPreview(!showPreview)}
-            className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            className="border-border/70 bg-accent/20 text-foreground hover:bg-accent/40"
           >
             {showPreview ? <Code className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
             {showPreview ? 'Edit' : 'Preview'}
@@ -330,7 +342,7 @@ export default function SendEmailPage() {
           <Button
             onClick={handleSend}
             disabled={sending || recipients.filter(r => r.email).length === 0 || !subject}
-            className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
           >
             {sending ? (
               <>
@@ -379,7 +391,7 @@ export default function SendEmailPage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)] gap-8">
         {/* Main Composer */}
         <div className="lg:col-span-2 space-y-6">
           {/* Template Selector */}
@@ -388,23 +400,23 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+            <Card className="rounded-4xl border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-border/70">
+                <CardTitle className="text-foreground flex items-center gap-2 text-lg">
                   <FileText className="h-5 w-5 text-primary" />
                   Template
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5 pt-6">
                 {selectedTemplate ? (
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10 border border-primary/30">
+                  <div className="flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Sparkles className="h-5 w-5 text-primary" />
+                      <div className="w-11 h-11 rounded-2xl bg-primary/20 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">{selectedTemplate.name}</p>
-                        <p className="text-sm text-gray-400">{selectedTemplate.subject}</p>
+                        <p className="font-medium text-foreground leading-tight">{selectedTemplate.name}</p>
+                        <p className="text-sm text-muted-foreground">{selectedTemplate.subject}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -430,7 +442,7 @@ export default function SendEmailPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowTemplateSelector(true)}
-                    className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 border-dashed"
+                    className="w-full border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 border-dashed"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Select Template (Optional)
@@ -439,7 +451,7 @@ export default function SendEmailPage() {
 
                 {/* Template Variables */}
                 {selectedTemplate && parseVariables(selectedTemplate.variables).length > 0 && (
-                  <div className="space-y-3 p-4 rounded-lg bg-white/5 border border-white/10">
+                  <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Edit3 className="h-4 w-4 text-[oklch(65%_0.19_145)]" />
                       <Label className="text-white/90 font-semibold">Template Variables</Label>
@@ -464,7 +476,7 @@ export default function SendEmailPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-white/50 mt-2">
+                    <p className="text-xs text-gray-400 mt-2">
                       💡 These variables will be replaced in your email content
                     </p>
                   </div>
@@ -472,10 +484,10 @@ export default function SendEmailPage() {
 
                 {/* Info when template has no variables */}
                 {selectedTemplate && parseVariables(selectedTemplate.variables).length === 0 && (
-                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
                     <p className="text-sm text-blue-300 flex items-center gap-2">
                       <AlertCircle className="h-4 w-4" />
-                      This template doesn't have any variables to configure
+                      This template doesn&apos;t have any variables to configure
                     </p>
                   </div>
                 )}
@@ -489,21 +501,21 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+            <Card className="rounded-4xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-white/5">
+                <CardTitle className="text-white flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5 text-primary" />
                   Recipients
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4 pt-6">
                 {recipients.map((recipient, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/20 p-3"
                   >
                     <div className="flex-1 grid grid-cols-2 gap-3">
                       <div>
@@ -512,7 +524,7 @@ export default function SendEmailPage() {
                           value={recipient.email}
                           onChange={(e) => updateRecipient(index, 'email', e.target.value)}
                           placeholder="recipient@example.com"
-                          className="bg-gray-800/50 border-gray-700 text-white"
+                          className="bg-black/20 border-white/10 text-white placeholder:text-white/35 rounded-2xl"
                         />
                       </div>
                       <div>
@@ -520,7 +532,7 @@ export default function SendEmailPage() {
                           value={recipient.name}
                           onChange={(e) => updateRecipient(index, 'name', e.target.value)}
                           placeholder="Name (optional)"
-                          className="bg-gray-800/50 border-gray-700 text-white"
+                          className="bg-black/20 border-white/10 text-white placeholder:text-white/35 rounded-2xl"
                         />
                       </div>
                     </div>
@@ -529,7 +541,7 @@ export default function SendEmailPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => removeRecipient(index)}
-                        className="text-gray-400 hover:text-red-400"
+                        className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -539,7 +551,7 @@ export default function SendEmailPage() {
                 <Button
                   variant="outline"
                   onClick={addRecipient}
-                  className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 border-dashed"
+                  className="w-full border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 border-dashed"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Recipient
@@ -554,40 +566,40 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <CardHeader>
+            <Card className="rounded-4xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-white/5">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-white flex items-center gap-2 text-lg">
                     <Mail className="h-5 w-5 text-primary" />
                     Message
                   </CardTitle>
-                  <div className="flex items-center gap-2 border border-gray-700 rounded-lg p-1">
+                  <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-black/20 p-1">
                     <button
                       onClick={() => setActiveTab('compose')}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      className={`px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                         activeTab === 'compose'
                           ? 'bg-primary text-white'
-                          : 'text-gray-400 hover:text-white'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       Compose
                     </button>
                     <button
                       onClick={() => setActiveTab('auto-reply')}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      className={`px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                         activeTab === 'auto-reply'
                           ? 'bg-primary text-white'
-                          : 'text-gray-400 hover:text-white'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       Auto-Reply
                     </button>
                     <button
                       onClick={() => setActiveTab('schedule')}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      className={`px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                         activeTab === 'schedule'
                           ? 'bg-primary text-white'
-                          : 'text-gray-400 hover:text-white'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       Schedule
@@ -595,47 +607,47 @@ export default function SendEmailPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5 pt-6">
                 {activeTab === 'compose' && (
                   <>
                     <div>
-                      <Label className="text-gray-300">Subject</Label>
+                      <Label className="text-foreground">Subject</Label>
                       <Input
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="Email subject"
-                        className="mt-2 bg-gray-800/50 border-gray-700 text-white"
+                        className="mt-2 rounded-2xl bg-accent/20 border-border/70 text-foreground placeholder:text-muted-foreground/70"
                       />
                     </div>
 
                     {showPreview ? (
                       <div>
-                        <Label className="text-gray-300">Preview</Label>
+                        <Label className="text-foreground">Preview</Label>
                         <div
-                          className="mt-2 p-4 rounded-lg bg-white text-gray-900 min-h-[300px] overflow-auto"
+                          className="mt-2 min-h-80 overflow-auto rounded-3xl border border-border/70 bg-card text-foreground p-5 shadow-inner"
                           dangerouslySetInnerHTML={{ __html: renderPreview() }}
                         />
                       </div>
                     ) : (
                       <>
                         <div>
-                          <Label className="text-gray-300">HTML Content</Label>
+                          <Label className="text-foreground">HTML Content</Label>
                           <textarea
                             value={htmlContent}
                             onChange={(e) => setHtmlContent(e.target.value)}
                             placeholder="<p>Enter HTML content...</p>"
                             rows={12}
-                            className="mt-2 w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="mt-2 w-full rounded-2xl border border-border/70 bg-accent/20 px-4 py-3 text-foreground font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300">Plain Text (Fallback)</Label>
+                          <Label className="text-foreground">Plain Text (Fallback)</Label>
                           <textarea
                             value={textContent}
                             onChange={(e) => setTextContent(e.target.value)}
                             placeholder="Enter plain text version..."
                             rows={6}
-                            className="mt-2 w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="mt-2 w-full rounded-2xl border border-border/70 bg-accent/20 px-4 py-3 text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                           />
                         </div>
                       </>
@@ -645,7 +657,7 @@ export default function SendEmailPage() {
 
                 {activeTab === 'auto-reply' && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/30 border border-gray-700">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-black/20 border border-white/10">
                       <div className="flex items-center gap-3">
                         <Reply className="h-5 w-5 text-primary" />
                         <div>
@@ -678,7 +690,7 @@ export default function SendEmailPage() {
                           {autoReplyTemplate ? (
                             <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10 border border-primary/30">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center">
                                   <Reply className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
@@ -691,7 +703,7 @@ export default function SendEmailPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setShowAutoReplySelector(true)}
-                                  className="text-gray-400 hover:text-white"
+                                  className="text-gray-400 hover:text-white hover:bg-white/10"
                                 >
                                   <Edit3 className="h-4 w-4" />
                                 </Button>
@@ -699,7 +711,7 @@ export default function SendEmailPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={clearAutoReplyTemplate}
-                                  className="text-gray-400 hover:text-white"
+                                  className="text-gray-400 hover:text-white hover:bg-white/10"
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
@@ -709,7 +721,7 @@ export default function SendEmailPage() {
                             <Button
                               variant="outline"
                               onClick={() => setShowAutoReplySelector(true)}
-                              className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 border-dashed"
+                              className="w-full border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 border-dashed"
                             >
                               <Plus className="h-4 w-4 mr-2" />
                               Select Auto-Reply Template
@@ -718,8 +730,8 @@ export default function SendEmailPage() {
                         </div>
                         
                         {autoReplyTemplate && (
-                          <div className="p-4 rounded-lg bg-gray-800/30 border border-gray-700">
-                            <p className="text-xs text-gray-500 mb-2">PREVIEW</p>
+                          <div className="p-4 rounded-2xl bg-black/20 border border-white/10">
+                            <p className="text-xs text-gray-400 mb-2">PREVIEW</p>
                             <p className="text-sm font-medium text-white mb-2">{autoReplyTemplate.subject}</p>
                             <div 
                               className="text-sm text-gray-400 prose prose-sm max-w-none"
@@ -736,7 +748,7 @@ export default function SendEmailPage() {
 
                 {activeTab === 'schedule' && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/30 border border-gray-700">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-black/20 border border-white/10">
                       <div className="flex items-center gap-3">
                         <Calendar className="h-5 w-5 text-primary" />
                         <div>
@@ -765,28 +777,28 @@ export default function SendEmailPage() {
                         className="grid grid-cols-2 gap-4"
                       >
                         <div>
-                          <Label className="text-gray-300">Date</Label>
+                          <Label className="text-gray-200">Date</Label>
                           <Input
                             type="date"
                             value={scheduleDate}
                             onChange={(e) => setScheduleDate(e.target.value)}
-                            className="mt-2 bg-gray-800/50 border-gray-700 text-white"
+                            className="mt-2 rounded-2xl bg-black/20 border-white/10 text-white"
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300">Time</Label>
+                          <Label className="text-gray-200">Time</Label>
                           <Input
                             type="time"
                             value={scheduleTime}
                             onChange={(e) => setScheduleTime(e.target.value)}
-                            className="mt-2 bg-gray-800/50 border-gray-700 text-white"
+                            className="mt-2 rounded-2xl bg-black/20 border-white/10 text-white"
                           />
                         </div>
                       </motion.div>
                     )}
 
                     {/* Email Tracking Toggle */}
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/30 border border-gray-700">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-black/20 border border-white/10">
                       <div className="flex items-center gap-3">
                         <Eye className="h-5 w-5 text-primary" />
                         <div>
@@ -812,14 +824,14 @@ export default function SendEmailPage() {
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30"
+                        className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20"
                       >
                         <div className="flex items-start gap-3">
                           <MousePointer className="h-5 w-5 text-blue-400 mt-0.5" />
                           <div className="text-sm">
                             <p className="text-blue-400 font-medium mb-1">Tracking Enabled</p>
                             <p className="text-gray-400">
-                              We'll track when recipients open your email and click links. 
+                              We&apos;ll track when recipients open your email and click links. 
                               View analytics in the Analytics dashboard.
                             </p>
                           </div>
@@ -841,15 +853,18 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white text-sm">Email Service</CardTitle>
+            <Card className="rounded-4xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-white/5">
+                <CardTitle className="text-white text-sm flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  Email Service
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <select
                   value={selectedService}
                   onChange={(e) => setSelectedService(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Select service...</option>
                   {services.map((service) => (
@@ -868,16 +883,16 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-              <CardHeader>
+            <Card className="rounded-4xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-white/5">
                 <CardTitle className="text-white text-sm flex items-center gap-2">
                   <Paperclip className="h-4 w-4 text-primary" />
                   Attachments
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-6">
                 {attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-800/30">
+                  <div key={index} className="flex items-center justify-between p-3 rounded-2xl bg-black/20 border border-white/5">
                     <div className="flex items-center gap-2">
                       <Paperclip className="h-4 w-4 text-gray-400" />
                       <div>
@@ -889,7 +904,7 @@ export default function SendEmailPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setAttachments(attachments.filter((_, i) => i !== index))}
-                      className="h-8 w-8 text-gray-400 hover:text-red-400"
+                      className="h-8 w-8 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -897,7 +912,7 @@ export default function SendEmailPage() {
                 ))}
                 <Button
                   variant="outline"
-                  className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 border-dashed"
+                  className="w-full border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 border-dashed"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add File
@@ -912,14 +927,14 @@ export default function SendEmailPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30">
-              <CardHeader>
+            <Card className="rounded-4xl border border-primary/20 bg-primary/10 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)]">
+              <CardHeader className="border-b border-primary/10">
                 <CardTitle className="text-white text-sm flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Lightbulb className="h-4 w-4 text-primary" />
                   Pro Tips
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-xs text-gray-400">
+              <CardContent className="space-y-2 text-xs text-gray-200 pt-6">
                 <p>• Use templates to save time and maintain consistency</p>
                 <p>• Test emails with yourself before sending to recipients</p>
                 <p>• Enable auto-reply for automated responses</p>
@@ -947,15 +962,15 @@ export default function SendEmailPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-3xl z-50"
             >
-              <Card className="bg-gray-900 border-gray-700 h-full md:h-auto max-h-[90vh] flex flex-col">
-                <CardHeader className="border-b border-gray-700">
+              <Card className="h-full md:h-auto max-h-[90vh] flex flex-col rounded-4xl border border-white/10 bg-gray-950/95 backdrop-blur-2xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.9)]">
+                <CardHeader className="border-b border-white/10">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white">Select Template</CardTitle>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowTemplateSelector(false)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-white hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -967,7 +982,7 @@ export default function SendEmailPage() {
                         value={templateSearch}
                         onChange={(e) => setTemplateSearch(e.target.value)}
                         placeholder="Search templates..."
-                        className="pl-10 bg-gray-800/50 border-gray-700 text-white"
+                        className="pl-10 rounded-2xl bg-black/20 border-white/10 text-white"
                       />
                     </div>
                   </div>
@@ -981,10 +996,10 @@ export default function SendEmailPage() {
                           key={template.id}
                           whileHover={{ scale: 1.02 }}
                           onClick={() => handleTemplateSelect(template)}
-                          className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 hover:border-primary/50 cursor-pointer transition-all"
+                          className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/40 cursor-pointer transition-all"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                               <FileText className="h-5 w-5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1010,7 +1025,7 @@ export default function SendEmailPage() {
                       );
                     })}
                     {filteredTemplates.length === 0 && (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-gray-400">
                         <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                         <p>No templates found</p>
                       </div>
@@ -1040,8 +1055,8 @@ export default function SendEmailPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-3xl z-50"
             >
-              <Card className="bg-gray-900 border-gray-700 h-full md:h-auto max-h-[90vh] flex flex-col">
-                <CardHeader className="border-b border-gray-700">
+              <Card className="h-full md:h-auto max-h-[90vh] flex flex-col rounded-4xl border border-white/10 bg-gray-950/95 backdrop-blur-2xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.9)]">
+                <CardHeader className="border-b border-white/10">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-white flex items-center gap-2">
                       <Reply className="h-5 w-5 text-primary" />
@@ -1051,7 +1066,7 @@ export default function SendEmailPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowAutoReplySelector(false)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-white hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -1063,7 +1078,7 @@ export default function SendEmailPage() {
                         value={templateSearch}
                         onChange={(e) => setTemplateSearch(e.target.value)}
                         placeholder="Search auto-reply templates..."
-                        className="pl-10 bg-gray-800/50 border-gray-700 text-white"
+                        className="pl-10 rounded-2xl bg-black/20 border-white/10 text-white"
                       />
                     </div>
                   </div>
@@ -1075,10 +1090,10 @@ export default function SendEmailPage() {
                         key={template.id}
                         whileHover={{ scale: 1.02 }}
                         onClick={() => handleAutoReplyTemplateSelect(template)}
-                        className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 hover:border-primary/50 cursor-pointer transition-all"
+                        className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/40 cursor-pointer transition-all"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                             <Reply className="h-5 w-5 text-primary" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1089,12 +1104,12 @@ export default function SendEmailPage() {
                       </motion.div>
                     ))}
                     {filteredTemplates.length === 0 && (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-gray-400">
                         <Reply className="h-12 w-12 mx-auto mb-3 opacity-50" />
                         <p>No templates found</p>
                         <Button
                           variant="outline"
-                          className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+                          className="mt-4 border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
                           onClick={() => {
                             setShowAutoReplySelector(false);
                             router.push('/dashboard/templates/new');

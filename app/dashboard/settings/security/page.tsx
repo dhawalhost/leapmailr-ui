@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mfaAPI } from '@/lib/api';
+import { getAPIErrorMessage, mfaAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/lib/store';
 import {
@@ -29,7 +30,7 @@ import type { MFASetupResponse, MFAStatus } from '@/types/mfa';
 
 export default function SecurityPage() {
   const { toast } = useToast();
-  const { user } = useAuthStore();
+  useAuthStore();
   
   const [loading, setLoading] = useState(true);
   const [mfaStatus, setMfaStatus] = useState<MFAStatus | null>(null);
@@ -51,21 +52,25 @@ export default function SecurityPage() {
   const [regeneratePassword, setRegeneratePassword] = useState('');
   const [newBackupCodes, setNewBackupCodes] = useState<string[]>([]);
 
-  useEffect(() => {
-    loadMFAStatus();
-  }, []);
-
-  const loadMFAStatus = async () => {
+  const loadMFAStatus = useCallback(async () => {
     try {
       setLoading(true);
       const response = await mfaAPI.getStatus();
       setMfaStatus(response.data);
-    } catch (error: any) {
-      console.error('Failed to load MFA status:', error);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: getAPIErrorMessage(error, 'Failed to load MFA status'),
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadMFAStatus();
+  }, [loadMFAStatus]);
 
   const handleSetupStart = async () => {
     if (!setupPassword) {
@@ -85,10 +90,10 @@ export default function SecurityPage() {
         title: 'Setup Started',
         description: 'Scan the QR code with your authenticator app',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to start MFA setup',
+        description: getAPIErrorMessage(error, 'Failed to start MFA setup'),
         variant: 'destructive',
       });
     }
@@ -114,10 +119,10 @@ export default function SecurityPage() {
       setSetupData(null);
       setVerificationCode('');
       loadMFAStatus();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Invalid verification code',
+        description: getAPIErrorMessage(error, 'Invalid verification code'),
         variant: 'destructive',
       });
     }
@@ -143,10 +148,10 @@ export default function SecurityPage() {
       setDisablePassword('');
       setDisableCode('');
       loadMFAStatus();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to disable MFA',
+        description: getAPIErrorMessage(error, 'Failed to disable MFA'),
         variant: 'destructive',
       });
     }
@@ -170,10 +175,10 @@ export default function SecurityPage() {
         title: 'Success',
         description: 'New backup codes generated',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to regenerate backup codes',
+        description: getAPIErrorMessage(error, 'Failed to regenerate backup codes'),
         variant: 'destructive',
       });
     }
@@ -322,16 +327,19 @@ export default function SecurityPage() {
                   
                   {/* QR Code */}
                   <div className="bg-white p-4 rounded-lg inline-block">
-                    <img
+                    <Image
                       src={setupData.qr_code_data_url}
                       alt="QR Code"
+                      width={256}
+                      height={256}
                       className="w-64 h-64"
+                      unoptimized
                     />
                   </div>
 
                   {/* Manual Entry */}
                   <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                    <p className="text-xs text-white/40 mb-2">Can't scan? Enter this code manually:</p>
+                    <p className="text-xs text-white/40 mb-2">Can&apos;t scan? Enter this code manually:</p>
                     <div className="flex items-center gap-2 justify-center">
                       <code className="bg-black/30 px-3 py-2 rounded font-mono text-sm">
                         {showSecret ? setupData.secret : '••••••••••••••••'}
@@ -436,7 +444,7 @@ export default function SecurityPage() {
                     <div>
                       <h4 className="font-medium text-green-200 mb-1">Your Account is Protected</h4>
                       <p className="text-sm text-green-300/80">
-                        Two-factor authentication is active. You'll need your authenticator app to sign in.
+                        Two-factor authentication is active. You&apos;ll need your authenticator app to sign in.
                       </p>
                       {mfaStatus.backup_codes_count !== undefined && (
                         <p className="text-xs text-green-300/60 mt-2">

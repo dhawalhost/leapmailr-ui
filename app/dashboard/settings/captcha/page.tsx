@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { api } from '@/lib/api';
+import { api, getAPIErrorMessage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   Shield,
   Plus,
   Trash2,
-  Eye,
-  EyeOff,
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
@@ -28,11 +26,12 @@ interface CaptchaConfig {
   updated_at: string;
 }
 
+type CaptchaProvider = CaptchaConfig['provider'];
+
 export default function CaptchaSettingsPage() {
   const { toast } = useToast();
   const [configs, setConfigs] = useState<CaptchaConfig[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     provider: 'recaptcha_v2' as 'recaptcha_v2' | 'hcaptcha',
@@ -42,25 +41,25 @@ export default function CaptchaSettingsPage() {
     is_active: true,
   });
 
-  useEffect(() => {
-    loadConfigs();
-  }, []);
-
-  const loadConfigs = async () => {
+  const loadConfigs = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/captcha');
       setConfigs(response.data.captcha_configs || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load CAPTCHA configurations',
+        description: getAPIErrorMessage(error, 'Failed to load CAPTCHA configurations'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadConfigs();
+  }, [loadConfigs]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,10 +88,10 @@ export default function CaptchaSettingsPage() {
         is_active: true,
       });
       loadConfigs();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to create CAPTCHA configuration',
+        description: getAPIErrorMessage(error, 'Failed to create CAPTCHA configuration'),
         variant: 'destructive',
       });
     }
@@ -110,10 +109,10 @@ export default function CaptchaSettingsPage() {
         description: 'CAPTCHA configuration deleted successfully',
       });
       loadConfigs();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete CAPTCHA configuration',
+        description: getAPIErrorMessage(error, 'Failed to delete CAPTCHA configuration'),
         variant: 'destructive',
       });
     }
@@ -129,10 +128,10 @@ export default function CaptchaSettingsPage() {
         description: `CAPTCHA configuration ${!config.is_active ? 'activated' : 'deactivated'}`,
       });
       loadConfigs();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update CAPTCHA configuration',
+        description: getAPIErrorMessage(error, 'Failed to update CAPTCHA configuration'),
         variant: 'destructive',
       });
     }
@@ -178,7 +177,7 @@ export default function CaptchaSettingsPage() {
                   className="w-full mt-1 p-2 border rounded-md"
                   value={formData.provider}
                   onChange={(e) =>
-                    setFormData({ ...formData, provider: e.target.value as any })
+                    setFormData({ ...formData, provider: e.target.value as CaptchaProvider })
                   }
                 >
                   <option value="recaptcha_v2">Google reCAPTCHA v2</option>

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Sparkles, Shield } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -55,11 +56,11 @@ export default function LoginPage() {
         return;
       }
 
-      const { user, access_token, refresh_token, csrf_token } = response.data.data;
-      setAuth(user, access_token, refresh_token, csrf_token);
+      const { user } = response.data.data;
+      setAuth(user);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.error || 'Login failed. Please check your credentials.' : 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -79,34 +80,34 @@ export default function LoginPage() {
         code: mfaCode,
         backup_code: useBackupCode,
       });
-      const { user, access_token, refresh_token, csrf_token } = response.data.data;
-      setAuth(user, access_token, refresh_token, csrf_token);
+      const { user } = response.data.data;
+      setAuth(user);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid verification code. Please try again.');
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.error || 'Invalid verification code. Please try again.' : 'Invalid verification code. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background text-foreground bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--color-primary)_16%,transparent),transparent_34%),radial-gradient(circle_at_bottom_right,color-mix(in_oklch,var(--color-accent)_14%,transparent),transparent_32%)]">
       {/* Left side - Hero */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/20 via-primary/10 to-background items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 items-center justify-center p-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7 }}
-          className="max-w-lg text-center space-y-6"
+          className="max-w-lg text-center space-y-6 rounded-[2.5rem] border border-border/70 bg-card/90 p-10 backdrop-blur-2xl shadow-[0_30px_120px_-50px_rgba(0,0,0,0.85)]"
         >
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
             className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-4"
           >
-            <Sparkles className="w-12 h-12 text-primary" />
+            <Shield className="w-12 h-12 text-primary" />
           </motion.div>
-          <h2 className="text-4xl font-bold">Better Platform</h2>
+          <h2 className="text-4xl font-bold tracking-tight text-foreground">Better Platform</h2>
           <p className="text-lg text-muted-foreground">
             More features. Better pricing. Superior developer experience.
           </p>
@@ -124,7 +125,7 @@ export default function LoginPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
-                className="text-left p-3 rounded-lg bg-background/50 backdrop-blur"
+                className="text-left p-3 rounded-2xl bg-accent/20 backdrop-blur border border-border/70"
               >
                 {feature}
               </motion.div>
@@ -134,15 +135,18 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md space-y-8"
+          className="w-full max-w-md space-y-8 rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 backdrop-blur-xl shadow-[0_30px_120px_-50px_rgba(0,0,0,0.85)]"
         >
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+              <Shield className="w-7 h-7 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome back</h1>
             <p className="text-muted-foreground mt-2">
               Sign in to your LeapMailr Pro account
             </p>
@@ -152,7 +156,7 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm"
+              className="p-3 rounded-2xl bg-destructive/10 border border-destructive/40 text-destructive text-sm"
             >
               {error}
             </motion.div>
@@ -184,14 +188,14 @@ export default function LoginPage() {
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
                   placeholder={useBackupCode ? 'XXXX-XXXX-XXXX-XXXX' : '000000'}
-                  className={`text-center text-2xl tracking-widest font-mono ${
+                  className={`text-center text-2xl tracking-widest font-mono rounded-2xl bg-accent/20 border-border/70 ${
                     useBackupCode ? '' : 'tracking-wider'
                   }`}
                   autoFocus
                 />
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading || !mfaCode}>
+              <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading || !mfaCode}>
                 {isLoading ? 'Verifying...' : 'Verify and Sign In'}
               </Button>
 
@@ -233,7 +237,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="john@example.com"
-                  className="pl-9"
+                  className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                   {...register('email')}
                 />
               </div>
@@ -258,7 +262,7 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                   {...register('password')}
                 />
               </div>
@@ -267,7 +271,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading}>
               {isLoading ? (
                 'Signing in...'
               ) : (
@@ -278,7 +282,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link href="/register" className="text-primary hover:underline font-medium">
                 Create one now
@@ -291,7 +295,7 @@ export default function LoginPage() {
           <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-border/70" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
@@ -301,7 +305,7 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" disabled>
+            <Button variant="outline" disabled className="rounded-2xl border-border/70 bg-accent/20 hover:bg-accent/40">
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -322,7 +326,7 @@ export default function LoginPage() {
               </svg>
               Google
             </Button>
-            <Button variant="outline" disabled>
+            <Button variant="outline" disabled className="rounded-2xl border-border/70 bg-accent/20 hover:bg-accent/40">
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>

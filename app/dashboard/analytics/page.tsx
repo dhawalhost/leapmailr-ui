@@ -1,45 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
 import { emailAPI } from '@/lib/api';
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
   LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import {
-  TrendingUp,
-  TrendingDown,
-  Mail,
   Send,
   CheckCircle2,
-  XCircle,
-  Clock,
   Download,
-  Calendar,
   RefreshCw,
   Eye,
   MousePointer,
-  Filter,
-  ArrowUpRight,
-  ArrowDownRight,
   BarChart3,
 } from 'lucide-react';
 
@@ -75,10 +59,26 @@ interface TemplateStats {
   click_rate: number;
 }
 
+interface EmailHistoryItem {
+  created_at: string;
+  status: string;
+  opened_at?: string | null;
+  clicked_at?: string | null;
+  template_id?: string;
+  template?: {
+    name?: string | null;
+  } | null;
+}
+
+type TemplateAccumulator = Omit<TemplateStats, 'open_rate' | 'click_rate'>;
+
+interface PieLabelPayload {
+  name?: string;
+  percent?: number;
+}
+
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d' | 'custom'>('30d');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('30d');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -99,25 +99,21 @@ export default function AnalyticsPage() {
   const [templatePerformance, setTemplatePerformance] = useState<TemplateStats[]>([]);
   const [statusData, setStatusData] = useState<{ name: string; value: number; color: string }[]>([]);
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       
       // Fetch email history
       const response = await emailAPI.history();
-      const emails = response.data.data || [];
+      const emails: EmailHistoryItem[] = response.data.data || [];
 
       // Calculate overall metrics
       const sent = emails.length;
-      const delivered = emails.filter((e: any) => e.status === 'delivered' || e.status === 'sent').length;
-      const opened = emails.filter((e: any) => e.opened_at).length;
-      const clicked = emails.filter((e: any) => e.clicked_at).length;
-      const failed = emails.filter((e: any) => e.status === 'failed' || e.status === 'bounced').length;
-      const pending = emails.filter((e: any) => e.status === 'queued' || e.status === 'pending').length;
+      const delivered = emails.filter((email) => email.status === 'delivered' || email.status === 'sent').length;
+      const opened = emails.filter((email) => email.opened_at).length;
+      const clicked = emails.filter((email) => email.clicked_at).length;
+      const failed = emails.filter((email) => email.status === 'failed' || email.status === 'bounced').length;
+      const pending = emails.filter((email) => email.status === 'queued' || email.status === 'pending').length;
 
       setMetrics({
         total_sent: sent,
@@ -145,17 +141,17 @@ export default function AnalyticsPage() {
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
         
-        const dayEmails = emails.filter((e: any) => {
-          const emailDate = new Date(e.created_at).toISOString().split('T')[0];
+        const dayEmails = emails.filter((email) => {
+          const emailDate = new Date(email.created_at).toISOString().split('T')[0];
           return emailDate === dateStr;
         });
 
         chartDataArr.push({
           date: timeRange === '24h' ? date.toLocaleTimeString('en-US', { hour: '2-digit' }) : dateStr,
           sent: dayEmails.length,
-          delivered: dayEmails.filter((e: any) => e.status === 'delivered' || e.status === 'sent').length,
-          opened: dayEmails.filter((e: any) => e.opened_at).length,
-          clicked: dayEmails.filter((e: any) => e.clicked_at).length,
+          delivered: dayEmails.filter((email) => email.status === 'delivered' || email.status === 'sent').length,
+          opened: dayEmails.filter((email) => email.opened_at).length,
+          clicked: dayEmails.filter((email) => email.clicked_at).length,
         });
       }
       setEmailData(chartDataArr);
@@ -168,8 +164,8 @@ export default function AnalyticsPage() {
       ]);
 
       // Template performance
-      const templateMap = new Map<string, any>();
-      emails.forEach((email: any) => {
+      const templateMap = new Map<string, TemplateAccumulator>();
+      emails.forEach((email) => {
         if (!email.template_id) return;
         
         const key = email.template_id;
@@ -185,16 +181,20 @@ export default function AnalyticsPage() {
         }
         
         const stats = templateMap.get(key);
+        if (!stats) {
+          return;
+        }
+
         stats.sent++;
         if (email.status === 'delivered' || email.status === 'sent') stats.delivered++;
         if (email.opened_at) stats.opened++;
         if (email.clicked_at) stats.clicked++;
       });
 
-      const templateStats = Array.from(templateMap.values()).map((t) => ({
-        ...t,
-        open_rate: t.delivered > 0 ? (t.opened / t.delivered) * 100 : 0,
-        click_rate: t.opened > 0 ? (t.clicked / t.opened) * 100 : 0,
+      const templateStats = Array.from(templateMap.values()).map((template) => ({
+        ...template,
+        open_rate: template.delivered > 0 ? (template.opened / template.delivered) * 100 : 0,
+        click_rate: template.opened > 0 ? (template.clicked / template.opened) * 100 : 0,
       }));
       
       setTemplatePerformance(templateStats.sort((a, b) => b.sent - a.sent).slice(0, 10));
@@ -204,7 +204,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    void loadAnalytics();
+  }, [loadAnalytics]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -462,7 +466,7 @@ export default function AnalyticsPage() {
                             cx="50%"
                             cy="50%"
                             labelLine={false}
-                            label={(entry: any) => `${entry.name} ${((entry.percent || 0) * 100).toFixed(0)}%`}
+                            label={({ name, percent }: PieLabelPayload) => `${name || 'Unknown'} ${((percent || 0) * 100).toFixed(0)}%`}
                             outerRadius={100}
                             fill="#8884d8"
                             dataKey="value"

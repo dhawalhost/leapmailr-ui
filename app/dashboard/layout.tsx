@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { ProjectSwitcher } from '@/components/project-switcher';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { 
   LayoutDashboard, 
   Mail, 
@@ -27,11 +27,13 @@ import {
   Home,
   Zap,
   HelpCircle,
-  Moon,
-  Sun,
   ChevronDown,
   Settings2,
 } from 'lucide-react';
+
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, badge: null },
@@ -49,7 +51,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   
   return (
     <nav className="flex items-center space-x-2 text-sm">
-      <Link href="/dashboard" className="flex items-center text-gray-400 hover:text-white transition-colors">
+      <Link href="/dashboard" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
         <Home className="h-4 w-4" />
       </Link>
       {segments.map((segment, index) => {
@@ -59,11 +61,11 @@ function Breadcrumb({ pathname }: { pathname: string }) {
         
         return (
           <div key={segment} className="flex items-center space-x-2">
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
             {isLast ? (
-              <span className="text-white font-medium">{label}</span>
+              <span className="text-foreground font-medium">{label}</span>
             ) : (
-              <Link href={href} className="text-gray-400 hover:text-white transition-colors">
+              <Link href={href} className="text-muted-foreground hover:text-foreground transition-colors">
                 {label}
               </Link>
             )}
@@ -84,12 +86,8 @@ export default function DashboardLayout({
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  const isHydrated = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   useEffect(() => {
     if (isHydrated && !isAuthenticated) {
@@ -97,17 +95,23 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, isHydrated, router]);
 
-  const handleLogout = () => {
-    clearAuth();
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+    } catch {
+      // Clear local state even if the remote session is already gone.
+    } finally {
+      clearAuth();
+      router.push('/login');
+    }
   };
 
   if (!isHydrated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -120,7 +124,7 @@ export default function DashboardLayout({
   const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -137,12 +141,12 @@ export default function DashboardLayout({
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-gray-900/95 backdrop-blur-xl border-r border-white/10 z-50 lg:hidden"
+              className="fixed inset-y-0 left-0 w-72 bg-card/95 backdrop-blur-xl border-r border-border/70 z-50 lg:hidden"
             >
               {/* Mobile Sidebar Content */}
               <div className="flex flex-col h-full">
                 {/* Mobile Logo Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div className="flex items-center justify-between p-6 border-b border-border/70">
                   <Image 
                     src="/assets/leapmailr.svg" 
                     alt="LeapMailr" 
@@ -154,7 +158,7 @@ export default function DashboardLayout({
                     variant="ghost"
                     size="icon"
                     onClick={() => setSidebarOpen(false)}
-                    className="text-gray-400 hover:text-white hover:bg-white/10"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent/60"
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -169,8 +173,8 @@ export default function DashboardLayout({
                       onClick={() => setSidebarOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${
                         isActive(item.href)
-                          ? 'bg-primary/20 text-primary border border-primary/30'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-primary/15 text-primary border border-primary/25'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
                       }`}
                     >
                       <item.icon className="h-5 w-5" />
@@ -185,21 +189,21 @@ export default function DashboardLayout({
                 </nav>
 
                 {/* Mobile User Section */}
-                <div className="p-4 border-t border-white/10">
-                  <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg bg-white/5">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center ring-2 ring-primary/30">
+                <div className="p-4 border-t border-border/70">
+                  <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-accent/30">
+                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center ring-1 ring-primary/25">
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium text-foreground truncate">
                         {user?.first_name} {user?.last_name}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-gray-400 hover:text-white hover:bg-white/5"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/40"
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -216,11 +220,11 @@ export default function DashboardLayout({
       <motion.div
         initial={false}
         animate={{ width: sidebarCollapsed ? 80 : 280 }}
-        className="hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-gray-900/95 backdrop-blur-xl border-r border-white/10 z-30"
+        className="hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-card/95 backdrop-blur-xl border-r border-border/70 z-30"
       >
-        <div className="flex flex-col flex-grow overflow-hidden">
+        <div className="flex flex-col grow overflow-hidden">
           {/* Desktop Logo Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-border/70">
             {!sidebarCollapsed ? (
               <Image 
                 src="/assets/leapmailr.svg" 
@@ -244,7 +248,7 @@ export default function DashboardLayout({
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="text-gray-400 hover:text-white hover:bg-white/10"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent/60"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -259,11 +263,11 @@ export default function DashboardLayout({
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group relative ${
                   isActive(item.href)
-                    ? 'bg-primary/20 text-primary border border-primary/30'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-primary/15 text-primary border border-primary/25'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
                 }`}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <item.icon className="h-5 w-5 shrink-0" />
                 {!sidebarCollapsed && (
                   <>
                     <span className="font-medium">{item.name}</span>
@@ -283,12 +287,12 @@ export default function DashboardLayout({
 
           {/* Desktop Collapse Toggle (when collapsed) */}
           {sidebarCollapsed && (
-            <div className="p-4 border-t border-white/10">
+            <div className="p-4 border-t border-border/70">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarCollapsed(false)}
-                className="w-full text-gray-400 hover:text-white hover:bg-white/10"
+                className="w-full text-muted-foreground hover:text-foreground hover:bg-accent/40"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -297,21 +301,21 @@ export default function DashboardLayout({
 
           {/* Desktop User Section */}
           {!sidebarCollapsed && (
-            <div className="p-4 border-t border-white/10">
-              <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center ring-2 ring-primary/30">
+            <div className="p-4 border-t border-border/70">
+              <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-accent/30 hover:bg-accent/40 transition-colors cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center ring-1 ring-primary/25">
                   <User className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {user?.first_name} {user?.last_name}
                   </p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-gray-400 hover:text-white hover:bg-white/5"
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/40"
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4 mr-2" />
@@ -325,25 +329,32 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className={`${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-[280px]'} transition-all duration-300`}>
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-20 border-b border-white/10 bg-gray-900/80 backdrop-blur-xl">
-          <div className="flex h-16 items-center gap-4 px-6">
+        <header className="sticky top-0 z-20 border-b border-border/70 bg-background/75 backdrop-blur-2xl">
+          <div className="flex h-16 items-center gap-4 px-4 md:px-6">
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-gray-400 hover:text-white"
+              className="lg:hidden text-muted-foreground hover:text-foreground hover:bg-accent/40"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </Button>
 
             {/* Breadcrumb Navigation */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <Breadcrumb pathname={pathname} />
             </div>
 
+            <div className="hidden xl:flex items-center gap-2 rounded-full border border-border/70 bg-accent/20 px-3 py-1.5 text-xs text-muted-foreground">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              Unified email workspace
+            </div>
+
             {/* Project Switcher */}
-            <ProjectSwitcher />
+            <div className="hidden sm:block">
+              <ProjectSwitcher />
+            </div>
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2">
@@ -351,7 +362,7 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-white hover:bg-white/10"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent/40"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -360,7 +371,7 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-white hover:bg-white/10"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent/40"
               >
                 <HelpCircle className="h-5 w-5" />
               </Button>
@@ -369,13 +380,13 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-white hover:bg-white/10"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent/40"
               >
                 <Bell className="h-5 w-5" />
               </Button>
 
               {/* Plan Badge */}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary text-sm font-medium">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
                 <Zap className="h-4 w-4" />
                 <span>{user?.plan_type || 'Free'}</span>
               </div>
@@ -385,7 +396,7 @@ export default function DashboardLayout({
                 <Button
                   variant="ghost"
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white hover:bg-white/10"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-accent/40"
                 >
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center ring-2 ring-primary/30">
                     <User className="h-4 w-4 text-primary" />
@@ -405,24 +416,24 @@ export default function DashboardLayout({
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute right-0 mt-2 w-64 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                        className="absolute right-0 mt-2 w-64 bg-card/95 backdrop-blur-xl border border-border/70 rounded-xl shadow-xl z-50 overflow-hidden"
                       >
-                        <div className="p-4 border-b border-white/10">
-                          <p className="font-medium text-white">
+                        <div className="p-4 border-b border-border/70">
+                          <p className="font-medium text-foreground">
                             {user?.first_name} {user?.last_name}
                           </p>
-                          <p className="text-sm text-gray-400">{user?.email}</p>
+                          <p className="text-sm text-muted-foreground">{user?.email}</p>
                         </div>
                         <div className="p-2">
                           <Link href="/dashboard/settings">
-                            <button className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                            <button className="w-full flex items-center gap-3 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-lg transition-colors">
                               <Settings2 className="h-4 w-4" />
                               <span>Account Settings</span>
                             </button>
                           </Link>
                           <button 
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-lg transition-colors"
                           >
                             <LogOut className="h-4 w-4" />
                             <span>Logout</span>
@@ -438,7 +449,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
+        <main className="p-4 md:p-6 lg:p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

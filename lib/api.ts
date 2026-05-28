@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/lib/store';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -10,6 +11,9 @@ export const api = axios.create({
   withCredentials: true, // Important: Enable sending cookies with requests
 });
 
+export const getAPIErrorMessage = (error: unknown, fallback: string) =>
+  axios.isAxiosError(error) ? error.response?.data?.error || fallback : error instanceof Error ? error.message : fallback;
+
 // Helper function to get cookie value
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -19,19 +23,12 @@ function getCookie(name: string): string | null {
   return null;
 }
 
-// Request interceptor to add auth token
+// Request interceptor to add CSRF protection for cookie-backed sessions.
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      
-      // Add CSRF token for non-GET requests
-      // Try to get from cookie first, then fallback to localStorage
-      if (config.method && config.method.toLowerCase() !== 'get') {
-        const csrfToken = getCookie('csrf_token') || localStorage.getItem('csrf_token');
+      if (config.method && !['get', 'head', 'options'].includes(config.method.toLowerCase())) {
+        const csrfToken = getCookie('csrf_token');
         if (csrfToken) {
           config.headers['X-CSRF-Token'] = csrfToken;
         }
@@ -50,27 +47,32 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
       originalRequest._retry = true;
 
       try {
         if (typeof window !== 'undefined') {
-          const refreshToken = localStorage.getItem('refresh_token');
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
-          });
+          const response = await axios.post(
+            `${API_BASE_URL}/auth/refresh`,
+            {},
+            {
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
-          const { access_token, refresh_token } = response.data.data;
-          localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', refresh_token);
+          const user = response.data?.data?.user;
+          if (user) {
+            useAuthStore.getState().setAuth(user);
+          }
 
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          useAuthStore.getState().clearAuth();
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
@@ -97,6 +99,9 @@ export const authAPI = {
   
   getProfile: () =>
     api.get('/profile'),
+
+  refresh: () =>
+    api.post('/auth/refresh'),
 };
 
 // Template API
@@ -107,28 +112,34 @@ export const templateAPI = {
   get: (id: string) =>
     api.get(`/templates/${id}`),
   
-  create: (data: any) =>
+  create: (data: unknown) =>
     api.post('/templates', data),
   
-  update: (id: string, data: any) =>
+  update: (id: string, data: unknown) =>
     api.put(`/templates/${id}`, data),
   
   delete: (id: string) =>
     api.delete(`/templates/${id}`),
   
-  test: (id: string, data: any) =>
+  test: (id: string, data: unknown) =>
     api.post(`/templates/${id}/test`, data),
   
   clone: (id: string, name: string) =>
     api.post(`/templates/${id}/clone`, { name }),
+
+  defaults: (category?: string) =>
+    api.get('/templates/defaults', { params: category ? { category } : undefined }),
+
+  categories: () =>
+    api.get('/templates/categories'),
 };
 
 // Email API
 export const emailAPI = {
-  send: (data: any) =>
+  send: (data: unknown) =>
     api.post('/email/send', data),
   
-  sendBulk: (data: any) =>
+  sendBulk: (data: unknown) =>
     api.post('/email/send-bulk', data),
   
   history: (params?: { limit?: number; offset?: number }) =>
@@ -150,7 +161,7 @@ export const emailServiceAPI = {
     project_id?: string;
     name: string;
     provider: string;
-    configuration: Record<string, any>;
+    configuration: Record<string, unknown>;
     from_email: string;
     from_name?: string;
     reply_to_email?: string;
@@ -160,7 +171,7 @@ export const emailServiceAPI = {
   
   update: (id: string, data: {
     name?: string;
-    configuration?: Record<string, any>;
+    configuration?: Record<string, unknown>;
     from_email?: string;
     from_name?: string;
     reply_to_email?: string;
@@ -177,6 +188,65 @@ export const emailServiceAPI = {
   
   setDefault: (id: string) =>
     api.post(`/email-services/${id}/default`),
+
+  providers: () =>
+    api.get('/email-services/providers'),
+};
+
+export const contactsAPI = {
+  list: (params?: {
+    search?: string;
+    source?: string;
+    subscribed?: boolean;
+    tags?: string;
+    limit?: number;
+    offset?: number;
+  }) => api.get('/contacts', { params }),
+
+  stats: () =>
+    api.get('/contacts/stats'),
+
+  create: (data: {
+    email: string;
+    name?: string;
+    phone?: string;
+    company?: string;
+    source?: string;
+    metadata?: Record<string, string>;
+    tags?: string[];
+  }) => api.post('/contacts', data),
+
+  update: (id: string, data: {
+    name?: string;
+    phone?: string;
+    company?: string;
+    metadata?: Record<string, string>;
+    tags?: string[];
+    is_subscribed?: boolean;
+  }) => api.put(`/contacts/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete(`/contacts/${id}`),
+
+  import: (data: {
+    contacts: Array<{
+      email: string;
+      name?: string;
+      phone?: string;
+      company?: string;
+      source?: string;
+      metadata?: Record<string, string>;
+      tags?: string[];
+    }>;
+    source?: string;
+  }) => api.post('/contacts/import', data),
+
+  export: (params?: {
+    search?: string;
+    source?: string;
+    subscribed?: boolean;
+    tags?: string;
+  }) => api.get('/contacts/export', { params, responseType: 'blob' }),
 };
 
 // Analytics API

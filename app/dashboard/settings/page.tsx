@@ -70,25 +70,29 @@ const accountSettings = [
 
 export default function SettingsPage() {
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen p-8 text-foreground">
+      <div className="max-w-7xl mx-auto space-y-8 pb-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          className="rounded-4xl border border-border/70 bg-card/90 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)] p-6 md:p-8"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <SettingsIcon className="h-8 w-8 text-[oklch(65%_0.19_145)]" />
-            <h1 className="text-3xl font-bold">Settings</h1>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4">
+                <SettingsIcon className="h-3.5 w-3.5" />
+                Configuration hub
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Settings</h1>
+              <p className="text-muted-foreground max-w-2xl leading-relaxed">Manage your email service configurations and account settings from one cleaner control surface.</p>
+            </div>
           </div>
-          <p className="text-white/60">
-            Manage your email service configurations and account settings
-          </p>
         </motion.div>
 
         {/* Email Service Settings */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-white/90">Email Service Settings</h2>
+          <h2 className="text-xl font-semibold mb-4 text-foreground/90">Email Service Settings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {settingsCategories.map((category, index) => (
               <motion.div
@@ -98,18 +102,17 @@ export default function SettingsPage() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Link href={category.href}>
-                  <Card className="relative overflow-hidden bg-white/5 backdrop-blur-xl border-white/10 
-                               hover:border-white/20 transition-all duration-300 cursor-pointer group h-full">
+                  <Card className="relative overflow-hidden rounded-4xl bg-white/5 backdrop-blur-xl border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer group h-full shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
                     {/* Gradient overlay */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${
+                    <div className={`absolute inset-0 bg-linear-to-br ${
                       category.color === 'text-blue-600' ? 'from-blue-500/10 to-blue-600/10' :
                       category.color === 'text-red-600' ? 'from-red-500/10 to-red-600/10' :
                       'from-green-500/10 to-green-600/10'
                     } opacity-0 group-hover:opacity-100 transition-opacity`} />
                     
-                    <CardHeader className="relative">
+                    <CardHeader className="relative border-b border-white/5">
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`p-3 rounded-lg ${
+                        <div className={`p-3 rounded-2xl ${
                           category.color === 'text-blue-600' ? 'bg-blue-500/20' :
                           category.color === 'text-red-600' ? 'bg-red-500/20' :
                           'bg-green-500/20'
@@ -137,7 +140,7 @@ export default function SettingsPage() {
 
         {/* Account Settings */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-white/90">Account Settings</h2>
+          <h2 className="text-xl font-semibold mb-4 text-foreground/90">Account Settings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {accountSettings.map((category, index) => (
               <motion.div
@@ -148,11 +151,10 @@ export default function SettingsPage() {
               >
                 {category.href ? (
                   <Link href={category.href}>
-                    <Card className="relative overflow-hidden bg-white/5 backdrop-blur-xl border-white/10 
-                                 transition-all duration-300 h-full hover:border-white/20 cursor-pointer group">
-                      <CardHeader>
+                    <Card className="relative overflow-hidden rounded-4xl bg-white/5 backdrop-blur-xl border-white/10 transition-all duration-300 h-full hover:border-white/20 cursor-pointer group shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
+                      <CardHeader className="border-b border-white/5">
                         <div className="flex items-start justify-between mb-4">
-                          <div className={`p-3 rounded-lg ${category.bgColor}`}>
+                          <div className={`p-3 rounded-2xl ${category.bgColor}`}>
                             <category.icon className={`h-6 w-6 ${category.color}`} />
                           </div>
                           <ArrowRight className="h-5 w-5 text-white/40 group-hover:text-[oklch(65%_0.19_145)] 
@@ -166,13 +168,12 @@ export default function SettingsPage() {
                     </Card>
                   </Link>
                 ) : (
-                  <Card className={`relative overflow-hidden bg-white/5 backdrop-blur-xl border-white/10 
-                               transition-all duration-300 h-full ${
+                  <Card className={`relative overflow-hidden rounded-4xl bg-white/5 backdrop-blur-xl border-white/10 transition-all duration-300 h-full shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)] ${
                                  category.comingSoon ? 'opacity-50' : 'hover:border-white/20 cursor-pointer'
                                }`}>
-                    <CardHeader>
+                    <CardHeader className="border-b border-white/5">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="p-3 rounded-lg bg-white/10">
+                        <div className="p-3 rounded-2xl bg-white/10">
                           <category.icon className="h-6 w-6 text-white/60" />
                         </div>
                         {category.comingSoon && (
@@ -200,8 +201,8 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10">
-            <CardHeader>
+          <Card className="rounded-4xl bg-white/5 backdrop-blur-xl border-white/10 shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
+            <CardHeader className="border-b border-white/5">
               <CardTitle>Quick Settings Overview</CardTitle>
               <CardDescription className="text-white/60">
                 View the status of your current configurations
@@ -220,7 +221,7 @@ export default function SettingsPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.7 + index * 0.05 }}
-                    className={`text-center p-4 rounded-lg ${
+                    className={`text-center p-4 rounded-2xl ${
                       item.color === 'blue' ? 'bg-blue-500/10' :
                       item.color === 'red' ? 'bg-red-500/10' :
                       'bg-green-500/10'

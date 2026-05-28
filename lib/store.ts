@@ -13,11 +13,8 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  csrfToken: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, accessToken: string, refreshToken: string, csrfToken?: string) => void;
+  setAuth: (user: User) => void;
   clearAuth: () => void;
 }
 
@@ -25,27 +22,12 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      csrfToken: null,
       isAuthenticated: false,
-      setAuth: (user, accessToken, refreshToken, csrfToken) => {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('access_token', accessToken);
-          localStorage.setItem('refresh_token', refreshToken);
-          if (csrfToken) {
-            localStorage.setItem('csrf_token', csrfToken);
-          }
-        }
-        set({ user, accessToken, refreshToken, csrfToken, isAuthenticated: true });
+      setAuth: (user) => {
+        set({ user, isAuthenticated: true });
       },
       clearAuth: () => {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('csrf_token');
-        }
-        set({ user: null, accessToken: null, refreshToken: null, csrfToken: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false });
       },
     }),
     {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { emailServiceAPI } from '@/lib/api';
+import { emailServiceAPI, getAPIErrorMessage } from '@/lib/api';
 import { EmailService } from '@/types/email-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,8 +45,8 @@ export function TestServiceModal({ open, onClose, service }: TestServiceModalPro
           variant: 'destructive',
         });
       }
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.error || 'Failed to test email service';
+    } catch (error) {
+      const errorMsg = getAPIErrorMessage(error, 'Failed to test email service');
       setResult({
         success: false,
         error: errorMsg,
@@ -64,10 +64,10 @@ export function TestServiceModal({ open, onClose, service }: TestServiceModalPro
   return (
     <Dialog.Root open={open} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-lg shadow-lg p-6 w-full max-w-md z-50">
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/95 text-foreground rounded-2xl shadow-lg border border-border/70 p-6 w-full max-w-md z-50 backdrop-blur-xl">
           <div className="flex justify-between items-center mb-6">
-            <Dialog.Title className="text-xl font-bold">
+            <Dialog.Title className="text-xl font-bold text-foreground">
               Test Email Service
             </Dialog.Title>
             <Dialog.Close asChild>
@@ -78,7 +78,7 @@ export function TestServiceModal({ open, onClose, service }: TestServiceModalPro
           </div>
 
           {service && (
-            <div className="mb-4 p-3 bg-muted rounded-md">
+            <div className="mb-4 p-3 bg-accent/20 rounded-md border border-border/70">
               <p className="text-sm font-medium">{service.name}</p>
               <p className="text-xs text-muted-foreground">{service.provider}</p>
             </div>
@@ -104,9 +104,9 @@ export function TestServiceModal({ open, onClose, service }: TestServiceModalPro
               <div className={`p-4 rounded-md ${result.success ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
                 <div className="flex items-start gap-2">
                   {result.success ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   )}
                   <div>
                     <p className={`text-sm font-medium ${result.success ? 'text-green-600' : 'text-red-600'}`}>

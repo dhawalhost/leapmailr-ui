@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -53,25 +54,25 @@ export default function RegisterPage() {
         last_name: data.last_name,
       });
 
-      const { user, access_token, refresh_token, csrf_token } = response.data.data;
-      setAuth(user, access_token, refresh_token, csrf_token);
+      const { user } = response.data.data;
+      setAuth(user);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.error || 'Registration failed. Please try again.' : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background text-foreground bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--color-primary)_16%,transparent),transparent_34%),radial-gradient(circle_at_bottom_right,color-mix(in_oklch,var(--color-accent)_14%,transparent),transparent_32%)]">
       {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-md space-y-8"
+          className="w-full max-w-md space-y-8 rounded-[2.25rem] border border-border/70 bg-card/90 p-6 md:p-8 backdrop-blur-xl shadow-[0_30px_120px_-50px_rgba(0,0,0,0.85)]"
         >
           <div className="text-center">
             <motion.div
@@ -80,9 +81,9 @@ export default function RegisterPage() {
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
             >
-              <Sparkles className="w-8 h-8 text-primary" />
+              <User className="w-8 h-8 text-primary" />
             </motion.div>
-            <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Create your account</h1>
             <p className="text-muted-foreground mt-2">
               Start sending beautiful emails in minutes
             </p>
@@ -92,7 +93,7 @@ export default function RegisterPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm"
+              className="p-3 rounded-2xl bg-destructive/10 border border-destructive/40 text-destructive text-sm"
             >
               {error}
             </motion.div>
@@ -107,7 +108,7 @@ export default function RegisterPage() {
                   <Input
                     id="first_name"
                     placeholder="John"
-                    className="pl-9"
+                    className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                     {...register('first_name')}
                   />
                 </div>
@@ -123,7 +124,7 @@ export default function RegisterPage() {
                   <Input
                     id="last_name"
                     placeholder="Doe"
-                    className="pl-9"
+                    className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                     {...register('last_name')}
                   />
                 </div>
@@ -141,7 +142,7 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   placeholder="john@example.com"
-                  className="pl-9"
+                  className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                   {...register('email')}
                 />
               </div>
@@ -158,7 +159,7 @@ export default function RegisterPage() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                   {...register('password')}
                 />
               </div>
@@ -175,7 +176,7 @@ export default function RegisterPage() {
                   id="confirmPassword"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="pl-9 rounded-2xl bg-accent/20 border-border/70"
                   {...register('confirmPassword')}
                 />
               </div>
@@ -184,7 +185,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full rounded-2xl" size="lg" disabled={isLoading}>
               {isLoading ? (
                 'Creating account...'
               ) : (
@@ -195,7 +196,7 @@ export default function RegisterPage() {
               )}
             </Button>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link href="/login" className="text-primary hover:underline font-medium">
                 Sign in
@@ -206,14 +207,14 @@ export default function RegisterPage() {
       </div>
 
       {/* Right side - Hero */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/20 via-primary/10 to-background items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 items-center justify-center p-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.7 }}
-          className="max-w-lg text-center space-y-6"
+          className="max-w-lg text-center space-y-6 rounded-[2.5rem] border border-border/70 bg-card/90 p-10 backdrop-blur-2xl shadow-[0_30px_120px_-50px_rgba(0,0,0,0.85)]"
         >
-          <h2 className="text-4xl font-bold">Welcome to LeapMailr Pro</h2>
+          <h2 className="text-4xl font-bold tracking-tight text-foreground">Welcome to LeapMailr Pro</h2>
           <p className="text-lg text-muted-foreground">
             The most powerful email service platform for developers. Send transactional emails with ease.
           </p>
@@ -229,7 +230,7 @@ export default function RegisterPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
-                className="p-4 rounded-lg bg-background/50 backdrop-blur"
+                className="p-4 rounded-2xl bg-accent/20 backdrop-blur border border-border/70"
               >
                 <div className="text-2xl font-bold text-primary">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>

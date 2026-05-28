@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { api } from '@/lib/api';
+import { api, getAPIErrorMessage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   Reply,
@@ -66,35 +66,39 @@ export default function AutoReplyPage() {
     delay_seconds: 0,
   });
 
-  useEffect(() => {
-    loadAutoreplies();
-    loadEmailServices();
-  }, []);
-
-  const loadAutoreplies = async () => {
+  const loadAutoreplies = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/autoreplies');
       setAutoreplies(response.data.autoreplies || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load auto-replies',
+        description: getAPIErrorMessage(error, 'Failed to load auto-replies'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const loadEmailServices = async () => {
+  const loadEmailServices = useCallback(async () => {
     try {
       const response = await api.get('/email-services');
       setEmailServices(response.data.services || []);
-    } catch (error: any) {
-      console.error('Failed to load email services:', error);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: getAPIErrorMessage(error, 'Failed to load email services'),
+        variant: 'destructive',
+      });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadAutoreplies();
+    loadEmailServices();
+  }, [loadAutoreplies, loadEmailServices]);
 
   const resetForm = () => {
     setFormData({
@@ -134,10 +138,10 @@ export default function AutoReplyPage() {
       }
       resetForm();
       loadAutoreplies();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to save auto-reply',
+        description: getAPIErrorMessage(error, 'Failed to save auto-reply'),
         variant: 'destructive',
       });
     }
@@ -174,10 +178,10 @@ export default function AutoReplyPage() {
         description: 'Auto-reply deleted successfully',
       });
       loadAutoreplies();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete auto-reply',
+        description: getAPIErrorMessage(error, 'Failed to delete auto-reply'),
         variant: 'destructive',
       });
     }
@@ -191,10 +195,10 @@ export default function AutoReplyPage() {
         description: `Auto-reply ${!currentState ? 'activated' : 'deactivated'}`,
       });
       loadAutoreplies();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update auto-reply',
+        description: getAPIErrorMessage(error, 'Failed to update auto-reply'),
         variant: 'destructive',
       });
     }
@@ -212,10 +216,10 @@ export default function AutoReplyPage() {
         title: 'Success',
         description: `Test auto-reply sent to ${email}`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to send test email',
+        description: getAPIErrorMessage(error, 'Failed to send test email'),
         variant: 'destructive',
       });
     }

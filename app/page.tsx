@@ -1,18 +1,17 @@
 'use client';
 
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   ArrowRight,
   Zap,
   Shield,
-  TrendingUp,
   CheckCircle2,
-  Sparkles,
+  Rocket,
   Code,
   Lock,
   BarChart3,
@@ -20,80 +19,15 @@ import {
   Send,
   Users,
   ChevronDown,
-  Star,
-  Quote,
   Globe,
-  Clock,
   Award,
-  Rocket,
-  Play,
-  Check,
   X,
   Menu,
 } from 'lucide-react';
 
-// Animated Counter Component
-function AnimatedCounter({ target, suffix = '', prefix = '' }: { target: number; suffix?: string; prefix?: string }) {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    if (hasAnimated) return;
-    
-    const duration = 2000;
-    const steps = 60;
-    const increment = target / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setCount(target);
-        clearInterval(timer);
-        setHasAnimated(true);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [target, hasAnimated]);
-
-  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
-}
-
 export default function Home() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  
-  const testimonials = [
-    {
-      name: 'Sarah Johnson',
-      role: 'CTO at TechCorp',
-      company: 'TechCorp',
-      image: '/assets/short.png',
-      content: 'LeapMailr transformed our email infrastructure. We went from 92% to 99.8% deliverability in just weeks. The real-time analytics have been game-changing.',
-      rating: 5,
-    },
-    {
-      name: 'Michael Chen',
-      role: 'Lead Developer',
-      company: 'StartupX',
-      image: '/assets/short.png',
-      content: 'The API is incredibly intuitive. We integrated it in less than an hour and haven\'t looked back since. Best decision for our email infrastructure.',
-      rating: 5,
-    },
-    {
-      name: 'Emily Rodriguez',
-      role: 'Product Manager',
-      company: 'Scale.io',
-      image: '/assets/short.png',
-      content: 'Real-time analytics and template management save us hours every week. The team support is outstanding. Highly recommend for any growing company.',
-      rating: 5,
-    },
-  ];
 
   const faqs = [
     {
@@ -122,17 +56,10 @@ export default function Home() {
     },
   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-hidden">
+    <div className="min-h-screen bg-background overflow-hidden text-foreground">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl">
         <div className="container mx-auto px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -140,24 +67,24 @@ export default function Home() {
                 <Image src="/assets/leapmailr.svg" alt="LeapMailr" width={120} height={32} className="h-4 w-auto" />
               </Link>
               <div className="hidden md:flex items-center space-x-6">
-                <a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">Features</a>
-                <a href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors">Pricing</a>
-                <a href="#testimonials" className="text-sm text-gray-400 hover:text-white transition-colors">Testimonials</a>
-                <a href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors">FAQ</a>
+                <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
+                <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+                <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
+                <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/login">
-                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800">Sign In</Button>
+                <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-accent/40">Sign In</Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30">
                   Get Started Free
                 </Button>
               </Link>
             </div>
             <button 
-              className="md:hidden text-gray-400"
+              className="md:hidden text-muted-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -171,15 +98,15 @@ export default function Home() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden border-t border-white/5 py-4"
+                className="md:hidden border-t border-border/70 py-4"
               >
                 <div className="flex flex-col space-y-4">
-                  <a href="#features" className="text-gray-400 hover:text-white transition-colors">Features</a>
-                  <a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a>
-                  <a href="#testimonials" className="text-gray-400 hover:text-white transition-colors">Testimonials</a>
-                  <a href="#faq" className="text-gray-400 hover:text-white transition-colors">FAQ</a>
+                  <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
+                  <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+                  <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
+                  <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
                   <Link href="/login">
-                    <Button variant="ghost" className="w-full justify-start text-gray-300">Sign In</Button>
+                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">Sign In</Button>
                   </Link>
                   <Link href="/register">
                     <Button className="w-full bg-primary hover:bg-primary/90 text-white">Get Started Free</Button>
@@ -195,7 +122,7 @@ export default function Home() {
       <section className="relative pt-32 pb-20 overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-primary/10 via-transparent to-transparent"></div>
           <motion.div 
             className="absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
             animate={{
@@ -236,36 +163,36 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 hover:bg-primary/15 transition-colors cursor-pointer"
             >
-              <Sparkles className="h-4 w-4 animate-pulse" />
+              <Rocket className="h-4 w-4 animate-pulse" />
               <span>The Smart Email Abstraction Layer</span>
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 tracking-tight leading-tight">
               Switch email providers{' '}
-              <span className="bg-gradient-to-r from-primary via-green-400 to-emerald-400 bg-clip-text text-transparent animate-gradient">
+              <span className="bg-linear-to-r from-primary via-green-400 to-emerald-400 bg-clip-text text-transparent animate-gradient">
                 without changing code
               </span>
             </h1>
             
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
               Stop hardcoding SMTP providers in your application. LeapMailr sits between your code and email services, letting you switch providers, manage templates, and track analytics—all without touching your codebase.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/register">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white h-14 px-10 text-base shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all group w-full sm:w-auto">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-10 text-base shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all group w-full sm:w-auto">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-gray-600 h-14 px-10 text-base group w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="border-border/70 text-muted-foreground hover:bg-accent/40 hover:border-border h-14 px-10 text-base group w-full sm:w-auto">
                 <Code className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                 View Documentation
               </Button>
             </div>
             
             {/* Trust Indicators */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-sm text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
                 <span>Free to start</span>
@@ -316,15 +243,15 @@ export default function Home() {
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className={`p-6 bg-gradient-to-br ${card.color} from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 group cursor-pointer h-full`}>
+                <Card className={`p-6 bg-card/90 ${card.color} border-border/70 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 group cursor-pointer h-full`}>
                   <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                     <card.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-white font-bold text-lg mb-2 group-hover:text-primary transition-colors">{card.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed mb-4">{card.description}</p>
-                  <div className="pt-4 border-t border-gray-700/50 flex items-center justify-between">
-                    <span className="text-xs text-gray-500 font-medium">{card.badge}</span>
-                    <ArrowRight className="h-4 w-4 text-gray-600 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <h3 className="text-foreground font-bold text-lg mb-2 group-hover:text-primary transition-colors">{card.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">{card.description}</p>
+                  <div className="pt-4 border-t border-border/70 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground font-medium">{card.badge}</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                   </div>
                 </Card>
               </motion.div>
@@ -342,7 +269,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="p-12 bg-gradient-to-br from-primary/5 to-gray-800/50 border-gray-700/50 backdrop-blur-sm">
+                <Card className="p-12 bg-linear-to-br from-primary/5 to-gray-800/50 border-gray-700/50 backdrop-blur-sm">
               <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
                   <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Why LeapMailr?</h2>
@@ -352,7 +279,7 @@ export default function Home() {
                 <div className="grid md:grid-cols-2 gap-8 mb-12">
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                         <X className="h-5 w-5 text-red-500" />
                       </div>
                       <div>
@@ -362,7 +289,7 @@ export default function Home() {
                     </div>
                     
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                         <X className="h-5 w-5 text-red-500" />
                       </div>
                       <div>
@@ -372,19 +299,19 @@ export default function Home() {
                     </div>
                     
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                         <X className="h-5 w-5 text-red-500" />
                       </div>
                       <div>
                         <h3 className="text-white font-semibold mb-2">Vendor Lock-in</h3>
-                        <p className="text-gray-400 text-sm">Tied to one provider's API, pricing, and limitations. Migration is painful.</p>
+                        <p className="text-gray-400 text-sm">Tied to one provider&apos;s API, pricing, and limitations. Migration is painful.</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -394,7 +321,7 @@ export default function Home() {
                     </div>
                     
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -404,18 +331,18 @@ export default function Home() {
                     </div>
                     
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-white font-semibold mb-2">Complete Freedom</h3>
-                        <p className="text-gray-400 text-sm">Try different providers, compare performance, negotiate better pricing. You're in control.</p>
+                        <p className="text-gray-400 text-sm">Try different providers, compare performance, negotiate better pricing. You&apos;re in control.</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-r from-primary/10 to-green-500/10 border border-primary/20 rounded-lg p-6 text-center">
+                <div className="bg-linear-to-r from-primary/10 to-green-500/10 border border-primary/20 rounded-lg p-6 text-center">
                   <p className="text-white font-semibold mb-2">The LeapMailr Advantage</p>
                   <p className="text-gray-300 text-sm">
                     Your code calls LeapMailr → We handle provider routing → Emails delivered through your chosen service
@@ -487,7 +414,7 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -4 }}
               >
-                <Card className={`p-6 h-full bg-gradient-to-br ${feature.color} from-gray-800/30 to-gray-900/30 border-gray-700/50 backdrop-blur-sm hover:border-primary/30 transition-all group`}>
+                <Card className={`p-6 h-full bg-linear-to-br ${feature.color} from-gray-800/30 to-gray-900/30 border-gray-700/50 backdrop-blur-sm hover:border-primary/30 transition-all group`}>
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all">
                     <feature.icon className="h-6 w-6 text-primary" />
                   </div>
@@ -541,7 +468,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className="p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-primary/30 transition-all h-full text-center">
+                <Card className="p-6 bg-linear-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-primary/30 transition-all h-full text-center">
                   <div className="relative inline-flex items-center justify-center mb-4">
                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
                     <div className="relative w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -641,8 +568,8 @@ export default function Home() {
                 )}
                 <Card className={`p-8 h-full flex flex-col ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/50 shadow-lg shadow-primary/20 ring-2 ring-primary/30'
-                    : 'bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50'
+                    ? 'bg-linear-to-br from-primary/20 to-primary/5 border-primary/50 shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                    : 'bg-linear-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50'
                 }`}>
                   <div className="mb-6">
                     <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
@@ -653,13 +580,13 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <ul className="space-y-3 mb-8 flex-grow">
+                  <ul className="space-y-3 mb-8 grow">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
                         {feature.included ? (
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                         ) : (
-                          <X className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                          <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                         )}
                         <span className={`text-sm ${feature.included ? 'text-gray-300' : 'text-gray-600'}`}>
                           {feature.text}
@@ -705,7 +632,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.05 }}
               >
-                <Card className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 backdrop-blur-sm hover:border-gray-600/50 transition-all overflow-hidden">
+                <Card className="bg-linear-to-br from-gray-800/30 to-gray-900/30 border-gray-700/50 backdrop-blur-sm hover:border-gray-600/50 transition-all overflow-hidden">
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
                     className="w-full p-6 text-left flex items-center justify-between gap-4 group"
@@ -713,7 +640,7 @@ export default function Home() {
                     <span className="font-semibold text-white group-hover:text-primary transition-colors text-lg">
                       {faq.question}
                     </span>
-                    <ChevronDown className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform ${
+                    <ChevronDown className={`h-5 w-5 text-gray-400 shrink-0 transition-transform ${
                       openFaq === index ? 'rotate-180' : ''
                     }`} />
                   </button>
@@ -746,7 +673,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Card className="p-12 md:p-16 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/50 relative overflow-hidden">
+            <Card className="p-12 md:p-16 bg-linear-to-br from-primary/20 to-primary/5 border-primary/50 relative overflow-hidden">
               {/* Background Decoration */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl"></div>

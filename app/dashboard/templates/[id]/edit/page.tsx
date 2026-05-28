@@ -1,20 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { templateAPI } from '@/lib/api';
+import { getAPIErrorMessage, templateAPI } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
   Save,
   Eye,
   Code,
-  Sparkles,
+  FileText,
   Loader2,
-  Wand2,
+  CheckCircle2,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ export default function EditTemplatePage() {
   const router = useRouter();
   const params = useParams();
   const templateId = params.id as string;
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -80,11 +82,7 @@ export default function EditTemplatePage() {
     setDetectedVariables(detected);
   }, [formData.html_body, formData.text_body]);
 
-  useEffect(() => {
-    loadTemplate();
-  }, [templateId]);
-
-  const loadTemplate = async () => {
+  const loadTemplate = useCallback(async () => {
     try {
       setLoading(true);
       const response = await templateAPI.get(templateId);
@@ -101,13 +99,20 @@ export default function EditTemplatePage() {
       const existingVars = parseVariables(template.variables);
       setManualVariables(existingVars.join(', '));
     } catch (error) {
-      console.error('Failed to load template:', error);
-      alert('Failed to load template');
+      toast({
+        title: 'Error',
+        description: getAPIErrorMessage(error, 'Failed to load template'),
+        variant: 'destructive',
+      });
       router.push('/dashboard/templates');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, templateId, toast]);
+
+  useEffect(() => {
+    loadTemplate();
+  }, [loadTemplate]);
 
   const handleSave = async () => {
     try {
@@ -126,14 +131,14 @@ export default function EditTemplatePage() {
         variables: JSON.stringify(variablesList), // Send as JSON array string
       };
 
-      console.log('Updating template with variables:', variablesList);
-      console.log('Template data:', templateData);
-      
       await templateAPI.update(templateId, templateData);
       router.push('/dashboard/templates');
     } catch (error) {
-      console.error('Failed to update template:', error);
-      alert('Failed to update template. Please try again.');
+      toast({
+        title: 'Error',
+        description: getAPIErrorMessage(error, 'Failed to update template. Please try again.'),
+        variant: 'destructive',
+      });
     } finally {
       setSaving(false);
     }
@@ -155,64 +160,69 @@ export default function EditTemplatePage() {
   }
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-8 pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCancel}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Templates
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Edit Template
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Update your email template
-            </p>
+      <div className="rounded-4xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_90px_-40px_rgba(0,0,0,0.8)] p-6 md:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-4 max-w-3xl">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 w-fit"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Templates
+            </Button>
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4">
+                <FileText className="h-3.5 w-3.5" />
+                Template authoring
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                Edit Template
+              </h1>
+              <p className="text-gray-300 mt-2 max-w-2xl">Update your template with the same polished editing surface used throughout the app.</p>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || !formData.name || !formData.subject}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              className="rounded-2xl border-white/10 bg-white/5 hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !formData.name || !formData.subject}
+              className="rounded-2xl bg-green-600 hover:bg-green-700"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Template Information Card */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-4xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
+        <CardHeader className="border-b border-white/5">
           <CardTitle>Template Information</CardTitle>
           <CardDescription>
             Basic information about your email template
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 pt-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">
@@ -223,7 +233,7 @@ export default function EditTemplatePage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Welcome Email"
-                className="w-full"
+                className="w-full rounded-2xl bg-black/20 border-white/10"
               />
             </div>
 
@@ -236,20 +246,20 @@ export default function EditTemplatePage() {
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 placeholder="e.g., Welcome to {{.app_name}}!"
-                className="w-full"
+                className="w-full rounded-2xl bg-black/20 border-white/10"
               />
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-3xl">
+            <h3 className="text-sm font-semibold text-blue-100 mb-2 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
               Pro Tip: Using Variables
             </h3>
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              Use <code className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 rounded">{'{{.variable_name}}'}</code> 
-              {' '}syntax to add dynamic content. For example: <code className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 rounded">{'{{.user_name}}'}</code>, 
-              {' '}<code className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 rounded">{'{{.email}}'}</code>
+            <p className="text-xs text-blue-200/90">
+              Use <code className="px-1.5 py-0.5 bg-blue-500/15 rounded">{'{{.variable_name}}'}</code> 
+              {' '}syntax to add dynamic content. For example: <code className="px-1.5 py-0.5 bg-blue-500/15 rounded">{'{{.user_name}}'}</code>, 
+              {' '}<code className="px-1.5 py-0.5 bg-blue-500/15 rounded">{'{{.email}}'}</code>
             </p>
           </div>
 
@@ -261,7 +271,7 @@ export default function EditTemplatePage() {
               </Label>
               {detectedVariables.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <Wand2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <span className="text-xs text-green-600 font-medium">
                     {detectedVariables.length} variable{detectedVariables.length !== 1 ? 's' : ''} detected
                   </span>
@@ -271,15 +281,15 @@ export default function EditTemplatePage() {
 
             {/* Detected Variables Display */}
             {detectedVariables.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-200 dark:border-green-800">
-                <span className="text-xs text-green-700 dark:text-green-300 font-medium">
+              <div className="flex flex-wrap gap-2 p-3 bg-green-500/10 rounded-3xl border border-green-500/20">
+                <span className="text-xs text-green-200 font-medium">
                   Auto-detected:
                 </span>
                 {detectedVariables.map((variable) => (
                   <Badge
                     key={variable}
                     variant="outline"
-                    className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700"
+                    className="bg-green-500/15 text-green-100 border-green-500/20"
                   >
                     <Code className="h-3 w-3 mr-1" />
                     {variable}
@@ -295,9 +305,9 @@ export default function EditTemplatePage() {
                 value={manualVariables}
                 onChange={(e) => setManualVariables(e.target.value)}
                 placeholder="name, email, message (comma-separated)"
-                className="w-full"
+                className="w-full rounded-2xl bg-black/20 border-white/10"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-400">
                 Variables are auto-detected from your template content. You can also manually add or edit them here as a comma-separated list.
               </p>
             </div>
@@ -306,8 +316,8 @@ export default function EditTemplatePage() {
       </Card>
 
       {/* HTML Content Card */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-4xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
+        <CardHeader className="border-b border-white/5">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>HTML Content</CardTitle>
@@ -315,13 +325,13 @@ export default function EditTemplatePage() {
                 Design the HTML version of your email
               </CardDescription>
             </div>
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1">
               <button
                 onClick={() => setPreviewMode('code')}
                 className={`px-3 py-1.5 text-sm rounded transition ${
                   previewMode === 'code'
-                    ? 'bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-white text-gray-900 shadow'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <Code className="h-4 w-4 inline mr-1" />
@@ -331,8 +341,8 @@ export default function EditTemplatePage() {
                 onClick={() => setPreviewMode('preview')}
                 className={`px-3 py-1.5 text-sm rounded transition ${
                   previewMode === 'preview'
-                    ? 'bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-white text-gray-900 shadow'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <Eye className="h-4 w-4 inline mr-1" />
@@ -347,14 +357,14 @@ export default function EditTemplatePage() {
               value={formData.html_body}
               onChange={(e) => setFormData({ ...formData, html_body: e.target.value })}
               placeholder="Enter your HTML template..."
-              className="w-full h-96 p-4 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full h-96 p-4 border border-white/10 rounded-3xl font-mono text-sm bg-black/20 focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           ) : (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+            <div className="border border-white/10 rounded-3xl p-4 bg-black/20">
               {formData.html_body ? (
                 <iframe
                   srcDoc={formData.html_body}
-                  className="w-full h-96 bg-white rounded"
+                  className="w-full h-96 bg-white rounded-2xl"
                   title="Template Preview"
                 />
               ) : (
@@ -371,11 +381,11 @@ export default function EditTemplatePage() {
       </Card>
 
       {/* Plain Text Content Card */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-4xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-[0_20px_70px_-45px_rgba(0,0,0,0.85)]">
+        <CardHeader className="border-b border-white/5">
           <CardTitle>Plain Text Content</CardTitle>
           <CardDescription>
-            Fallback text version for email clients that don't support HTML (optional)
+            Fallback text version for email clients that don&apos;t support HTML (optional)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -383,7 +393,7 @@ export default function EditTemplatePage() {
             value={formData.text_body}
             onChange={(e) => setFormData({ ...formData, text_body: e.target.value })}
             placeholder="Enter plain text version (optional)..."
-            className="w-full h-48 p-4 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full h-48 p-4 border border-white/10 rounded-3xl font-mono text-sm bg-black/20 focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </CardContent>
       </Card>

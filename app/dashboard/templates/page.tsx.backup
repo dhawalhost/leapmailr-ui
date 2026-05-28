@@ -17,7 +17,7 @@ import {
   X,
   Save,
   FileText,
-  Sparkles,
+  Layout,
   Copy,
   Filter,
   Search,

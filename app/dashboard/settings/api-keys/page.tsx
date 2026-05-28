@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { api } from '@/lib/api';
+import { api, getAPIErrorMessage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   Key,
   Plus,
   Copy,
-  Eye,
-  EyeOff,
   Trash2,
   Power,
   PowerOff,
@@ -44,7 +42,6 @@ export default function APIKeysPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newKey, setNewKey] = useState<APIKey | null>(null);
-  const [showPrivateKeys, setShowPrivateKeys] = useState<{ [key: string]: boolean }>({});
   
   const [formData, setFormData] = useState({
     name: '',
@@ -52,25 +49,25 @@ export default function APIKeysPage() {
     rate_limit: 100,
   });
 
-  useEffect(() => {
-    loadAPIKeys();
-  }, []);
-
-  const loadAPIKeys = async () => {
+  const loadAPIKeys = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/api-keys');
       setApiKeys(response.data.keys || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load API keys',
+        description: getAPIErrorMessage(error, 'Failed to load API keys'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadAPIKeys();
+  }, [loadAPIKeys]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,10 +85,10 @@ export default function APIKeysPage() {
         title: 'Success',
         description: 'API key pair generated successfully!',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to generate API key',
+        description: getAPIErrorMessage(error, 'Failed to generate API key'),
         variant: 'destructive',
       });
     }
@@ -113,10 +110,10 @@ export default function APIKeysPage() {
         description: `API key ${!currentState ? 'activated' : 'deactivated'}`,
       });
       loadAPIKeys();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update API key',
+        description: getAPIErrorMessage(error, 'Failed to update API key'),
         variant: 'destructive',
       });
     }
@@ -134,10 +131,10 @@ export default function APIKeysPage() {
         description: 'API key revoked successfully',
       });
       loadAPIKeys();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to revoke API key',
+        description: getAPIErrorMessage(error, 'Failed to revoke API key'),
         variant: 'destructive',
       });
     }
@@ -155,10 +152,10 @@ export default function APIKeysPage() {
         description: 'API key deleted successfully',
       });
       loadAPIKeys();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete API key',
+        description: getAPIErrorMessage(error, 'Failed to delete API key'),
         variant: 'destructive',
       });
     }
@@ -177,20 +174,13 @@ export default function APIKeysPage() {
         description: 'Private key rotated successfully! Save the new key.',
       });
       loadAPIKeys();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to rotate key',
+        description: getAPIErrorMessage(error, 'Failed to rotate key'),
         variant: 'destructive',
       });
     }
-  };
-
-  const togglePrivateKeyVisibility = (keyId: string) => {
-    setShowPrivateKeys(prev => ({
-      ...prev,
-      [keyId]: !prev[keyId]
-    }));
   };
 
   if (loading) {
@@ -222,7 +212,7 @@ export default function APIKeysPage() {
           <CardHeader>
             <CardTitle className="text-green-900">New API Key Generated!</CardTitle>
             <CardDescription className="text-green-800">
-              Save these keys securely. The private key won't be shown again.
+              Save these keys securely. The private key won&apos;t be shown again.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -261,12 +251,12 @@ export default function APIKeysPage() {
                 </Button>
               </div>
               <p className="text-xs text-green-800 mt-2">
-                ⚠️ Store this private key securely. It won't be displayed again!
+                ⚠️ Store this private key securely. It won&apos;t be displayed again!
               </p>
             </div>
 
             <Button onClick={() => setNewKey(null)} className="w-full">
-              I've Saved My Keys
+              I&apos;ve Saved My Keys
             </Button>
           </CardContent>
         </Card>

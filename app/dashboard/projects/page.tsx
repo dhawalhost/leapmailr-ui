@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Folder, 
@@ -8,8 +8,6 @@ import {
   Edit, 
   Trash2, 
   Star, 
-  MoreVertical,
-  X,
   Check,
   AlertCircle,
 } from 'lucide-react';
@@ -27,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { projectAPI } from '@/lib/api';
+import { getAPIErrorMessage, projectAPI } from '@/lib/api';
 import { useProjectStore } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { Project } from '@/types/project';
@@ -60,26 +58,26 @@ export default function ProjectsPage() {
   const { currentProject, setCurrentProject, setProjects: updateStoreProjects } = useProjectStore();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       const response = await projectAPI.list();
       setProjects(response.data);
       updateStoreProjects(response.data);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load projects',
+        description: getAPIErrorMessage(error, 'Failed to load projects'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, updateStoreProjects]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleCreateProject = async () => {
     if (!formData.name.trim()) {
@@ -108,10 +106,10 @@ export default function ProjectsPage() {
       setFormData({ name: '', description: '', color: '#3b82f6' });
       setShowCreateModal(false);
       await fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to create project',
+        description: getAPIErrorMessage(error, 'Failed to create project'),
         variant: 'destructive',
       });
     } finally {
@@ -146,10 +144,10 @@ export default function ProjectsPage() {
       setShowEditModal(false);
       setSelectedProject(null);
       await fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update project',
+        description: getAPIErrorMessage(error, 'Failed to update project'),
         variant: 'destructive',
       });
     } finally {
@@ -172,10 +170,10 @@ export default function ProjectsPage() {
       setShowDeleteDialog(false);
       setSelectedProject(null);
       await fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete project',
+        description: getAPIErrorMessage(error, 'Failed to delete project'),
         variant: 'destructive',
       });
     } finally {
@@ -193,10 +191,10 @@ export default function ProjectsPage() {
       });
 
       await fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to set default project',
+        description: getAPIErrorMessage(error, 'Failed to set default project'),
         variant: 'destructive',
       });
     }
@@ -229,12 +227,12 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Projects</h1>
-          <p className="text-gray-400 mt-1">Organize your email services and templates by project</p>
+          <p className="text-muted-foreground mt-1">Organize your email services and templates by project</p>
         </div>
         <Button 
           onClick={() => setShowCreateModal(true)}
@@ -256,7 +254,7 @@ export default function ProjectsPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <Card className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-primary/50 transition-all group">
+              <Card className="relative bg-card/90 border-border/70 backdrop-blur-sm hover:border-primary/50 transition-all group">
                 {project.is_default && (
                   <div className="absolute top-3 right-3 z-10">
                     <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-xs font-medium">
@@ -270,7 +268,7 @@ export default function ProjectsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div 
-                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${project.color}20`, border: `1px solid ${project.color}40` }}
                       >
                         <Folder className="h-5 w-5" style={{ color: project.color }} />

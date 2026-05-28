@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { emailServiceAPI } from '@/lib/api';
+import { emailServiceAPI, getAPIErrorMessage } from '@/lib/api';
 import { EmailService, EmailServiceProvider, PROVIDER_METADATA } from '@/types/email-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +21,17 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
   const [selectedProvider, setSelectedProvider] = useState<EmailServiceProvider>('smtp');
   const [serviceName, setServiceName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
-  const [config, setConfig] = useState<Record<string, any>>({});
+  const [config, setConfig] = useState<Record<string, unknown>>({});
   const [fromEmail, setFromEmail] = useState('');
   const [fromName, setFromName] = useState('');
   const [replyToEmail, setReplyToEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const getConfigValue = (fieldName: string) => {
+    const value = config[fieldName];
+    return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  };
 
   useEffect(() => {
     if (service) {
@@ -55,16 +60,17 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
 
     try {
       const metadata = PROVIDER_METADATA[selectedProvider];
-      const configuration: Record<string, any> = {};
+      const configuration: Record<string, unknown> = {};
 
       // Build configuration from form fields
       metadata.fields.forEach(field => {
         const value = config[field.name];
-        if (value !== undefined && value !== '') {
+        if (value !== undefined && value !== null && value !== '') {
+          const stringValue = String(value);
           if (field.type === 'number') {
-            configuration[field.name] = parseInt(value, 10);
+            configuration[field.name] = parseInt(stringValue, 10);
           } else if (field.name === 'use_tls') {
-            configuration[field.name] = value === 'true';
+            configuration[field.name] = stringValue === 'true';
           } else {
             configuration[field.name] = value;
           }
@@ -103,10 +109,10 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
       }
 
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to save email service',
+        description: getAPIErrorMessage(error, 'Failed to save email service'),
         variant: 'destructive',
       });
     } finally {
@@ -119,8 +125,8 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
   return (
     <Dialog.Root open={open} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto z-50">
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/95 text-foreground rounded-2xl border border-border/70 shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto z-50 backdrop-blur-xl">
           <div className="flex justify-between items-center mb-6">
             <Dialog.Title className="text-2xl font-bold">
               {service ? 'Edit Email Service' : 'Add Email Service'}
@@ -151,7 +157,7 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
                   id="provider"
                   value={selectedProvider}
                   onChange={(e) => setSelectedProvider(e.target.value as EmailServiceProvider)}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2 border rounded-md bg-background text-foreground border-border/70"
                   required
                 >
                   {Object.entries(PROVIDER_METADATA).map(([key, meta]) => (
@@ -164,7 +170,7 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
             )}
 
             <div className="space-y-4">
-              <h3 className="font-semibold">Configuration</h3>
+              <h3 className="font-semibold text-foreground">Configuration</h3>
               {service && (
                 <p className="text-sm text-muted-foreground">
                   Leave fields empty to keep existing configuration
@@ -179,9 +185,9 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
                   {field.type === 'select' ? (
                     <select
                       id={field.name}
-                      value={config[field.name] || ''}
+                      value={getConfigValue(field.name)}
                       onChange={(e) => setConfig({ ...config, [field.name]: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-2 border rounded-md bg-background text-foreground border-border/70"
                       required={field.required && !service}
                     >
                       <option value="">Select...</option>
@@ -195,7 +201,7 @@ export function EmailServiceModal({ open, onClose, onSuccess, service }: EmailSe
                     <Input
                       id={field.name}
                       type={field.type}
-                      value={config[field.name] || ''}
+                      value={getConfigValue(field.name)}
                       onChange={(e) => setConfig({ ...config, [field.name]: e.target.value })}
                       placeholder={field.placeholder}
                       required={field.required && !service}

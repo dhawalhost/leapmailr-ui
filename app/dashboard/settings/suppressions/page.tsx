@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { api } from '@/lib/api';
+import { api, getAPIErrorMessage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   ShieldAlert,
@@ -16,9 +16,7 @@ import {
   AlertTriangle,
   Ban,
   UserX,
-  Download,
   Upload,
-  Filter,
 } from 'lucide-react';
 
 interface Suppression {
@@ -29,6 +27,8 @@ interface Suppression {
   metadata: string;
   created_at: string;
 }
+
+type SuppressionReason = Suppression['reason'];
 
 export default function SuppressionsPage() {
   const { toast } = useToast();
@@ -49,11 +49,7 @@ export default function SuppressionsPage() {
   const [bulkEmails, setBulkEmails] = useState('');
   const [bulkReason, setBulkReason] = useState<'bounce' | 'complaint' | 'unsubscribe' | 'manual'>('manual');
 
-  useEffect(() => {
-    loadSuppressions();
-  }, [searchTerm, filterReason, filterSource]);
-
-  const loadSuppressions = async () => {
+  const loadSuppressions = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -64,16 +60,20 @@ export default function SuppressionsPage() {
       const response = await api.get(`/suppressions?${params.toString()}`);
       setSuppressions(response.data.suppressions || []);
       setTotal(response.data.total || 0);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to load suppressions',
+        description: getAPIErrorMessage(error, 'Failed to load suppressions'),
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterReason, filterSource, searchTerm, toast]);
+
+  useEffect(() => {
+    loadSuppressions();
+  }, [loadSuppressions]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +86,10 @@ export default function SuppressionsPage() {
       setShowAddForm(false);
       setFormData({ email: '', reason: 'manual' });
       loadSuppressions();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to add suppression',
+        description: getAPIErrorMessage(error, 'Failed to add suppression'),
         variant: 'destructive',
       });
     }
@@ -120,10 +120,10 @@ export default function SuppressionsPage() {
       setShowBulkForm(false);
       setBulkEmails('');
       loadSuppressions();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to add suppressions',
+        description: getAPIErrorMessage(error, 'Failed to add suppressions'),
         variant: 'destructive',
       });
     }
@@ -141,10 +141,10 @@ export default function SuppressionsPage() {
         description: 'Email removed from suppression list',
       });
       loadSuppressions();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to remove suppression',
+        description: getAPIErrorMessage(error, 'Failed to remove suppression'),
         variant: 'destructive',
       });
     }
@@ -226,7 +226,7 @@ export default function SuppressionsPage() {
                   id="reason"
                   className="w-full mt-1 p-2 border rounded-md"
                   value={formData.reason}
-                  onChange={(e) => setFormData({ ...formData, reason: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, reason: e.target.value as SuppressionReason })}
                 >
                   <option value="manual">Manual</option>
                   <option value="bounce">Bounce</option>
@@ -278,7 +278,7 @@ export default function SuppressionsPage() {
                   id="bulk_reason"
                   className="w-full mt-1 p-2 border rounded-md"
                   value={bulkReason}
-                  onChange={(e) => setBulkReason(e.target.value as any)}
+                  onChange={(e) => setBulkReason(e.target.value as SuppressionReason)}
                 >
                   <option value="manual">Manual</option>
                   <option value="bounce">Bounce</option>

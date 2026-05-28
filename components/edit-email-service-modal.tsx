@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { emailServiceAPI } from '@/lib/api';
+import { emailServiceAPI, getAPIErrorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,10 +63,10 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
       });
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update email service',
+        description: getAPIErrorMessage(error, 'Failed to update email service'),
         variant: 'destructive',
       });
     } finally {
@@ -82,7 +82,7 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -90,15 +90,15 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-card/95 text-foreground rounded-2xl shadow-xl border border-border/70 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col backdrop-blur-xl"
         >
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="p-6 border-b border-border/70 shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-foreground">
                   Edit Email Service
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Update service name and sender information
                 </p>
               </div>
@@ -111,15 +111,15 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             <div className="p-6 space-y-6 overflow-y-auto flex-1">
             {/* Provider Info (Read-only) */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="p-4 bg-accent/20 rounded-lg border border-border/70">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Provider</p>
-                  <p className="font-semibold text-gray-900 dark:text-white capitalize">
+                  <p className="text-sm text-muted-foreground">Provider</p>
+                  <p className="font-semibold text-foreground capitalize">
                     {service.provider}
                   </p>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   To change SMTP credentials, delete and recreate the service
                 </div>
               </div>
@@ -127,9 +127,9 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
 
             {/* Service Name */}
             <div>
-              <Label htmlFor="serviceName">
+              <Label htmlFor="serviceName" className="text-foreground">
                 Service Name
-                <span className="text-red-500 ml-1">*</span>
+                <span className="text-destructive ml-1">*</span>
               </Label>
               <Input
                 id="serviceName"
@@ -142,14 +142,14 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
 
             {/* Sender Information */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-semibold text-foreground">
                 Sender Information
               </h3>
               
               <div>
                 <Label htmlFor="fromEmail">
                   From Email Address
-                  <span className="text-red-500 ml-1">*</span>
+                  <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Input
                   id="fromEmail"
@@ -159,7 +159,7 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
                   placeholder="noreply@yourdomain.com"
                   required
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   This is the email address recipients will see
                 </p>
               </div>
@@ -173,7 +173,7 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
                   onChange={(e) => setFromName(e.target.value)}
                   placeholder="Your Company Name"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   The friendly name shown to recipients
                 </p>
               </div>
@@ -187,7 +187,7 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
                   onChange={(e) => setReplyToEmail(e.target.value)}
                   placeholder="support@yourdomain.com"
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Where replies should be sent
                 </p>
               </div>
@@ -195,7 +195,7 @@ export function EditEmailServiceModal({ open, service, onClose, onSuccess }: Edi
             </div>
 
             {/* Actions */}
-            <div className="p-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div className="p-6 pt-4 border-t border-border/70 shrink-0">
               <div className="flex gap-3">
                 <Button
                   type="button"
